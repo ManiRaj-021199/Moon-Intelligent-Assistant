@@ -1,0 +1,16 @@
+﻿@namespace PersonalAssistant.Web.Shared
+@inherits LayoutComponentBase
+
+<PageTitle>PersonalAssistant</PageTitle>
+
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+        <NavigationMenu/>
+
+        <div class="layout-page">
+            @Body
+        </div>
+    </div>
+
+    <div class="layout-overlay layout-menu-toggle"></div>
+</div>

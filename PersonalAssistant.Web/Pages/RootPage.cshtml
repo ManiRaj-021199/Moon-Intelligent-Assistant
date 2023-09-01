@@ -1,0 +1,31 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Web
+@namespace PersonalAssistant.Web.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <base href="~/"/>
+
+    @* Icons *@
+    <link rel="stylesheet" href="Css/Vendor/Box-Icons/boxicons.css"/>
+
+    @* Core Css *@
+    <link rel="stylesheet" href="Css/Core/Site.css"/>
+    <link rel="stylesheet" href="Css/Core/Default.css"/>
+    <link rel="stylesheet" href="Css/Core/Support.css"/>
+
+    <link href="PersonalAssistant.Web.styles.css" rel="stylesheet"/>
+
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered"/>
+</head>
+<body>
+<component type="typeof(App)" render-mode="ServerPrerendered"/>
+
+<script src="_framework/blazor.server.js"></script>
+</body>
+</html>
