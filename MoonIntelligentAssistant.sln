@@ -5,6 +5,10 @@ VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MoonIntelligentAssistant.Web", "MoonIntelligentAssistant.Web\MoonIntelligentAssistant.Web.csproj", "{A96C13C4-3640-42D2-B85E-0DC4897CE0C0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MicroServices", "MicroServices", "{3489C763-C737-4DFD-B5ED-05284FDD0AD3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Authentication", "MicroServices\Authentication\Authentication.csproj", "{491433FC-A4A3-4BC6-8EDF-CE5BC9247D68}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,9 +19,16 @@ Global
 		{A96C13C4-3640-42D2-B85E-0DC4897CE0C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A96C13C4-3640-42D2-B85E-0DC4897CE0C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A96C13C4-3640-42D2-B85E-0DC4897CE0C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{491433FC-A4A3-4BC6-8EDF-CE5BC9247D68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{491433FC-A4A3-4BC6-8EDF-CE5BC9247D68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{491433FC-A4A3-4BC6-8EDF-CE5BC9247D68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{491433FC-A4A3-4BC6-8EDF-CE5BC9247D68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{491433FC-A4A3-4BC6-8EDF-CE5BC9247D68} = {3489C763-C737-4DFD-B5ED-05284FDD0AD3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5D09F2BF-6019-46A2-B1AA-0A2FAF5312C8}
