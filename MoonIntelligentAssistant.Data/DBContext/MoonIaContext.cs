@@ -30,13 +30,12 @@ public partial class MoonIaContext : DbContext
     {
         modelBuilder.Entity<User>(entity =>
                                   {
-                                      entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4C8AE607C0");
+                                      entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4CF7A7EDFF");
 
                                       entity.ToTable("Users", "User");
 
-                                      entity.Property(e => e.Email).HasMaxLength(75);
-                                      entity.Property(e => e.FirstName).HasMaxLength(50);
-                                      entity.Property(e => e.LastName).HasMaxLength(50);
+                                      entity.Property(e => e.UserEmail).HasMaxLength(75);
+                                      entity.Property(e => e.UserName).HasMaxLength(50);
                                   });
 
         OnModelCreatingPartial(modelBuilder);
