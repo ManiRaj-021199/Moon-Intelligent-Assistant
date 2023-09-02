@@ -1,0 +1,4 @@
+﻿IF (NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'User')) 
+BEGIN
+    EXEC ('CREATE SCHEMA [User] AUTHORIZATION [dbo]')
+END

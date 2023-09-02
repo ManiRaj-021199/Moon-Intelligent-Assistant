@@ -1,4 +1,6 @@
-﻿namespace Authentication;
+﻿using MoonIntelligentAssistant.Data.DBContext;
+
+namespace Authentication;
 
 public class Startup
 {
@@ -22,6 +24,8 @@ public class Startup
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+
+        builder.Services.AddDbContext<MoonIaContext>();
     }
 
     private static void Configure(WebApplication app)
