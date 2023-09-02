@@ -1,4 +1,4 @@
-using PersonalAssistant.Web;
+using MoonIntelligentAssistant.Web;
 
 WebApplication app = Startup.InitializeApp(args);
 

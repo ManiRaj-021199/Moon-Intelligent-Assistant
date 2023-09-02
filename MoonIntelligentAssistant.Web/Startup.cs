@@ -1,4 +1,4 @@
-﻿namespace PersonalAssistant.Web;
+﻿namespace MoonIntelligentAssistant.Web;
 
 public class Startup
 {
