@@ -9,6 +9,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MicroServices", "MicroServi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Authentication", "MicroServices\Authentication\Authentication.csproj", "{491433FC-A4A3-4BC6-8EDF-CE5BC9247D68}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MoonIntelligentAssistant.Data", "MoonIntelligentAssistant.Data\MoonIntelligentAssistant.Data.csproj", "{04F307AF-8C36-427D-8FE1-3CDE12D6A98C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MoonIntelligentAssistant.Logic", "MoonIntelligentAssistant.Logic\MoonIntelligentAssistant.Logic.csproj", "{7D854686-23B8-4CB6-B2E3-4042D1B83E2B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MoonIntelligentAssistant.Common", "MoonIntelligentAssistant.Common\MoonIntelligentAssistant.Common.csproj", "{C16ACB28-8202-4CF7-9A0E-AA7E8346DCB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonIntelligentAssistant.Containers", "MoonIntelligentAssistant.Containers\MoonIntelligentAssistant.Containers.csproj", "{3DF4C40D-163D-4487-AA85-9D9CC2698E1A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +31,22 @@ Global
 		{491433FC-A4A3-4BC6-8EDF-CE5BC9247D68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{491433FC-A4A3-4BC6-8EDF-CE5BC9247D68}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{491433FC-A4A3-4BC6-8EDF-CE5BC9247D68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04F307AF-8C36-427D-8FE1-3CDE12D6A98C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04F307AF-8C36-427D-8FE1-3CDE12D6A98C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04F307AF-8C36-427D-8FE1-3CDE12D6A98C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04F307AF-8C36-427D-8FE1-3CDE12D6A98C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D854686-23B8-4CB6-B2E3-4042D1B83E2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D854686-23B8-4CB6-B2E3-4042D1B83E2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D854686-23B8-4CB6-B2E3-4042D1B83E2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D854686-23B8-4CB6-B2E3-4042D1B83E2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C16ACB28-8202-4CF7-9A0E-AA7E8346DCB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C16ACB28-8202-4CF7-9A0E-AA7E8346DCB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C16ACB28-8202-4CF7-9A0E-AA7E8346DCB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C16ACB28-8202-4CF7-9A0E-AA7E8346DCB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DF4C40D-163D-4487-AA85-9D9CC2698E1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DF4C40D-163D-4487-AA85-9D9CC2698E1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DF4C40D-163D-4487-AA85-9D9CC2698E1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DF4C40D-163D-4487-AA85-9D9CC2698E1A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
