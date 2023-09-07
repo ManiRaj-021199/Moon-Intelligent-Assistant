@@ -1,12 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MoonIntelligentAssistant.Data.Entities;
 
 namespace MoonIntelligentAssistant.Data.DBContext;
 
 public partial class MoonIaContext : DbContext
 {
     #region Properties
-    public virtual DbSet<User>? Users { get; set; }
+    public virtual DbSet<AuthUser> AuthUsers { get; set; }
+
+    public virtual DbSet<NonAuthUser> NonAuthUsers { get; set; }
     #endregion
 
     #region Constructors
@@ -28,15 +29,26 @@ public partial class MoonIaContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>(entity =>
-                                  {
-                                      entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4CF7A7EDFF");
+        modelBuilder.Entity<AuthUser>(entity =>
+                                      {
+                                          entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4CF7A7EDFF");
 
-                                      entity.ToTable("Users", "User");
+                                          entity.ToTable("AuthUsers", "User");
 
-                                      entity.Property(e => e.UserEmail).HasMaxLength(75);
-                                      entity.Property(e => e.UserName).HasMaxLength(50);
-                                  });
+                                          entity.Property(e => e.UserEmail).HasMaxLength(75);
+                                          entity.Property(e => e.UserName).HasMaxLength(50);
+                                      });
+
+        modelBuilder.Entity<NonAuthUser>(entity =>
+                                         {
+                                             entity.HasKey(e => e.UserId).HasName("PK__NonAuthU__1788CC4CFBC7ECD8");
+
+                                             entity.ToTable("NonAuthUsers", "User");
+
+                                             entity.Property(e => e.AuthCode).HasMaxLength(50);
+                                             entity.Property(e => e.UserEmail).HasMaxLength(75);
+                                             entity.Property(e => e.UserName).HasMaxLength(50);
+                                         });
 
         OnModelCreatingPartial(modelBuilder);
     }
