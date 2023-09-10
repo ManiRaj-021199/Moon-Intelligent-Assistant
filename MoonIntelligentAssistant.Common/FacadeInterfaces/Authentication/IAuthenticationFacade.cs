@@ -2,6 +2,7 @@
 
 public interface IAuthenticationFacade
 {
-    public Task<BaseApiResponseDto> SendUserRegisterAuthCode(UserRegisterDto dtoUserRegister);
-    public Task<BaseApiResponseDto> ValidateAuthCode(ValidateAuthCodeDto dtoValidateAuthCode);
+    Task<BaseApiResponseDto> SendUserRegisterAuthCode(UserRegisterDto dtoUserRegister);
+    Task<BaseApiResponseDto> ValidateAuthCode(ValidateAuthCodeDto dtoValidateAuthCode);
+    Task<BaseApiResponseDto> RegisterUser(UserRegisterPasswordDto dtoUserRegisterPassword);
 }

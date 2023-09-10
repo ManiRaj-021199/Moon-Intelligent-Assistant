@@ -3,6 +3,8 @@
 internal class AuthenticationBL
 {
     #region Fields
+    private readonly AuthUsersReader readerAuthUsers;
+    private readonly AuthUsersWriter writerAuthUsers;
     private readonly NonAuthUsersReader readerNonAuthUsers;
     private readonly NonAuthUsersWriter writerNonAuthUsers;
     private readonly CommonDBContextActivities dbContextActivities;
@@ -11,6 +13,8 @@ internal class AuthenticationBL
     #region Constructors
     internal AuthenticationBL(MoonIaContext dbContext)
     {
+        readerAuthUsers = new AuthUsersReader(dbContext);
+        writerAuthUsers = new AuthUsersWriter(dbContext);
         readerNonAuthUsers = new NonAuthUsersReader(dbContext);
         writerNonAuthUsers = new NonAuthUsersWriter(dbContext);
         dbContextActivities = new CommonDBContextActivities(dbContext);
@@ -24,29 +28,31 @@ internal class AuthenticationBL
         {
             if(!dtoUserRegister.UserEmail.IsValidEmail()) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.InvalidEmail);
 
-            NonAuthUser? user = readerNonAuthUsers.GetByEmail(dtoUserRegister.UserEmail);
+            AuthUser? authUser = readerAuthUsers.GetByEmail(dtoUserRegister.UserEmail);
+            if(authUser != null) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
 
-            string strAuthCode = IsAuthCodeExpired(user) ? RandomUtilitiesHelper.GenerateRandomString() : user!.AuthCode;
+            NonAuthUser? nonAuthUser = readerNonAuthUsers.GetByEmail(dtoUserRegister.UserEmail);
+            string strAuthCode = IsAuthCodeExpired(nonAuthUser) ? RandomUtilitiesHelper.GenerateRandomString() : nonAuthUser!.AuthCode;
 
-            if(user == null)
+            if(nonAuthUser == null)
             {
-                user = NonAuthUsersAutoMapperHelper.ToNonAuthUser(dtoUserRegister);
-                user.AuthCode = strAuthCode;
-                user.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
+                nonAuthUser = UserAutoMapperHelper.ToNonAuthUser(dtoUserRegister);
+                nonAuthUser.AuthCode = strAuthCode;
+                nonAuthUser.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
 
-                writerNonAuthUsers.Add(user);
+                writerNonAuthUsers.Add(nonAuthUser);
             }
             else
             {
-                user.AuthCode = strAuthCode;
-                user.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
+                nonAuthUser.AuthCode = strAuthCode;
+                nonAuthUser.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
 
-                writerNonAuthUsers.Update(user);
+                writerNonAuthUsers.Update(nonAuthUser);
             }
 
             await dbContextActivities.PersistAsync();
 
-            SendUserRegisterAuthCode(user, strAuthCode);
+            SendUserRegisterAuthCode(nonAuthUser, strAuthCode);
 
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.SendAuthenticationCode, dtoUserRegister);
         }
@@ -81,6 +87,35 @@ internal class AuthenticationBL
             await dbContextActivities.PersistAsync();
 
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.AuthCodeValidateSuccess);
+        }
+        catch
+        {
+            return ResponseBuilderHelper.BuildErrorResponse();
+        }
+    }
+
+    internal async Task<BaseApiResponseDto> RegisterUser(UserRegisterPasswordDto dtoUserRegisterPassword)
+    {
+        try
+        {
+            NonAuthUser? nonAuthUser = readerNonAuthUsers.GetByEmail(dtoUserRegisterPassword.UserEmail);
+
+            if(nonAuthUser == null) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.UserNotRegistered);
+            if(!nonAuthUser.IsAuthenticated) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.UserNotAuthenticated);
+
+            PasswordHasherDto hashedPassword = PasswordHashingHelper.EncryptPassword(dtoUserRegisterPassword.Password);
+
+            AuthUser authUser = UserAutoMapperHelper.ToAuthUser(nonAuthUser);
+            authUser.UserId = 0;
+            authUser.PasswordHash = hashedPassword.PasswordHash;
+            authUser.PasswordSalt = hashedPassword.PasswordSalt;
+
+            writerNonAuthUsers.Remove(nonAuthUser);
+            writerAuthUsers.Add(authUser);
+
+            await dbContextActivities.PersistAsync();
+
+            return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.UserRegisterSuccess);
         }
         catch
         {
