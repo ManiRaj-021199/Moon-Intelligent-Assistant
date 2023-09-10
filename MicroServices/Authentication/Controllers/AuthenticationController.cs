@@ -8,7 +8,7 @@ namespace Authentication;
 public class AuthenticationController : ControllerBase
 {
     #region Fields
-    private readonly IAuthenticationFacade? facadeAuthentication;
+    private readonly IAuthenticationFacade facadeAuthentication;
     #endregion
 
     #region Constructors
@@ -23,7 +23,14 @@ public class AuthenticationController : ControllerBase
     [Route("[action]")]
     public async Task<BaseApiResponseDto> SendUserRegisterAuthCode(UserRegisterDto dtoUserRegister)
     {
-        return await facadeAuthentication?.SendUserRegisterAuthCode(dtoUserRegister)!;
+        return await facadeAuthentication.SendUserRegisterAuthCode(dtoUserRegister);
+    }
+
+    [HttpPost]
+    [Route("[action]")]
+    public async Task<BaseApiResponseDto> ValidateAuthCode(ValidateAuthCodeDto dtoValidateAuthCode)
+    {
+        return await facadeAuthentication.ValidateAuthCode(dtoValidateAuthCode);
     }
     #endregion
 }

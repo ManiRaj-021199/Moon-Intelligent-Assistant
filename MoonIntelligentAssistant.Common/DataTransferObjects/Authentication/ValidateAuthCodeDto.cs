@@ -1,6 +1,6 @@
 ﻿namespace MoonIntelligentAssistant.Common;
 
-public class UserRegisterAuthCodeDto
+public class ValidateAuthCodeDto
 {
     #region Properties
     public string UserEmail { get; set; } = string.Empty;

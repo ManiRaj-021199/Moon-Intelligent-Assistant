@@ -25,9 +25,8 @@ internal class AuthenticationBL
             if(!dtoUserRegister.UserEmail.IsValidEmail()) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.InvalidEmail);
 
             NonAuthUser? user = readerNonAuthUsers.GetByEmail(dtoUserRegister.UserEmail);
-            
-            bool bIsNeedToGenerateAuthCode = user == null || DateTimeUtilitiesHelper.GetCurrentDateTime() - user.RegisterDate > new TimeSpan(0, 5, 0);
-            string strAuthCode = bIsNeedToGenerateAuthCode ? RandomUtilitiesHelper.GenerateRandomString() : user!.AuthCode;
+
+            string strAuthCode = IsAuthCodeExpired(user) ? RandomUtilitiesHelper.GenerateRandomString() : user!.AuthCode;
 
             if(user == null)
             {
@@ -47,24 +46,68 @@ internal class AuthenticationBL
 
             await dbContextActivities.PersistAsync();
 
-            EmailHelper.SendEmail(new MailRequestDto
-                                  {
-                                      ToMailAddress = user.UserEmail,
-                                      MailType = MailType.UserRegisterAuthCode,
-                                      MailTemplatePath = MailTemplatePathValues.UserRegisterAuthCode
-                                  },
-                                  new Dictionary<string, string>
-                                  {
-                                      { "UserName", user.UserName },
-                                      { "AuthenticationCode", strAuthCode }
-                                  });
-            
+            SendUserRegisterAuthCode(user, strAuthCode);
+
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.SendAuthenticationCode, dtoUserRegister);
         }
         catch
         {
             return ResponseBuilderHelper.BuildErrorResponse();
         }
+    }
+
+    internal async Task<BaseApiResponseDto> ValidateAuthCode(ValidateAuthCodeDto dtoValidateAuthCode)
+    {
+        try
+        {
+            NonAuthUser? user = readerNonAuthUsers.GetByEmail(dtoValidateAuthCode.UserEmail);
+
+            if(user == null) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.UserNotRegistered);
+            if(user.AuthCode != dtoValidateAuthCode.AuthenticationCode) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.WrongAuthCode);
+
+            if(IsAuthCodeExpired(user))
+            {
+                await SendUserRegisterAuthCode(new UserRegisterDto
+                                               {
+                                                   UserEmail = dtoValidateAuthCode.UserEmail
+                                               });
+
+                return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.ExpiredAuthCode);
+            }
+
+            user.IsAuthenticated = true;
+
+            writerNonAuthUsers.Update(user);
+            await dbContextActivities.PersistAsync();
+
+            return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.AuthCodeValidateSuccess);
+        }
+        catch
+        {
+            return ResponseBuilderHelper.BuildErrorResponse();
+        }
+    }
+    #endregion
+
+    #region Privates
+    private static bool IsAuthCodeExpired(NonAuthUser? user)
+    {
+        return user == null || DateTimeUtilitiesHelper.GetCurrentDateTime() - user.RegisterDate > new TimeSpan(0, 5, 0);
+    }
+
+    private static void SendUserRegisterAuthCode(NonAuthUser user, string strAuthCode)
+    {
+        EmailHelper.SendEmail(new MailRequestDto
+                              {
+                                  ToMailAddress = user.UserEmail,
+                                  MailType = MailType.UserRegisterAuthCode,
+                                  MailTemplatePath = MailTemplatePathValues.UserRegisterAuthCode
+                              },
+                              new Dictionary<string, string>
+                              {
+                                  { "UserName", user.UserName },
+                                  { "AuthenticationCode", strAuthCode }
+                              });
     }
     #endregion
 }
