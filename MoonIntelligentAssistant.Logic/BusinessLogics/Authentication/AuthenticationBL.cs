@@ -5,6 +5,7 @@ internal class AuthenticationBL
     #region Fields
     private readonly NonAuthUsersReader readerNonAuthUsers;
     private readonly NonAuthUsersWriter writerNonAuthUsers;
+    private readonly CommonDBContextActivities dbContextActivities;
     #endregion
 
     #region Constructors
@@ -12,6 +13,7 @@ internal class AuthenticationBL
     {
         readerNonAuthUsers = new NonAuthUsersReader(dbContext);
         writerNonAuthUsers = new NonAuthUsersWriter(dbContext);
+        dbContextActivities = new CommonDBContextActivities(dbContext);
     }
     #endregion
 
@@ -21,28 +23,42 @@ internal class AuthenticationBL
         try
         {
             if(!dtoUserRegister.UserEmail.IsValidEmail()) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.InvalidEmail);
-            
-            NonAuthUser? user = readerNonAuthUsers.GetUserByEmail(dtoUserRegister.UserEmail);
 
-            string strAuthCode = RandomUtilitiesHelper.GenerateRandomString();
-            DateTime dtCurrentDateTime = DateTimeUtilitiesHelper.GetCurrentDateTime();
+            NonAuthUser? user = readerNonAuthUsers.GetByEmail(dtoUserRegister.UserEmail);
+            
+            bool bIsNeedToGenerateAuthCode = user == null || DateTimeUtilitiesHelper.GetCurrentDateTime() - user.RegisterDate > new TimeSpan(0, 5, 0);
+            string strAuthCode = bIsNeedToGenerateAuthCode ? RandomUtilitiesHelper.GenerateRandomString() : user!.AuthCode;
 
             if(user == null)
             {
                 user = NonAuthUsersAutoMapperHelper.ToNonAuthUser(dtoUserRegister);
                 user.AuthCode = strAuthCode;
-                user.RegisterDate = dtCurrentDateTime;
+                user.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
 
-                await writerNonAuthUsers.AddNewUser(user);
+                writerNonAuthUsers.Add(user);
             }
             else
             {
                 user.AuthCode = strAuthCode;
-                user.RegisterDate = dtCurrentDateTime;
+                user.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
 
-                await writerNonAuthUsers.UpdateUser(user);
+                writerNonAuthUsers.Update(user);
             }
 
+            await dbContextActivities.PersistAsync();
+
+            EmailHelper.SendEmail(new MailRequestDto
+                                  {
+                                      ToMailAddress = user.UserEmail,
+                                      MailType = MailType.UserRegisterAuthCode,
+                                      MailTemplatePath = MailTemplatePathValues.UserRegisterAuthCode
+                                  },
+                                  new Dictionary<string, string>
+                                  {
+                                      { "UserName", user.UserName },
+                                      { "AuthenticationCode", strAuthCode }
+                                  });
+            
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.SendAuthenticationCode, dtoUserRegister);
         }
         catch

@@ -14,18 +14,19 @@ internal class NonAuthUsersWriter
     #endregion
 
     #region Internals
-    internal async Task AddNewUser(NonAuthUser user)
+    internal void Add(NonAuthUser user)
     {
         dbContext.NonAuthUsers.Add(user);
-
-        await dbContext.SaveChangesAsync();
     }
 
-    internal async Task UpdateUser(NonAuthUser user)
+    internal void Update(NonAuthUser user)
     {
         dbContext.NonAuthUsers.Update(user);
+    }
 
-        await dbContext.SaveChangesAsync();
+    internal void Remove(NonAuthUser user)
+    {
+        dbContext.NonAuthUsers.Remove(user);
     }
     #endregion
 }

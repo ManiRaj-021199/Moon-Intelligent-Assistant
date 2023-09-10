@@ -5,7 +5,7 @@ public class RandomUtilitiesHelper
     #region Publics
     public static string GenerateRandomString()
     {
-        byte[] randomNumber = new byte[32];
+        byte[] randomNumber = new byte[8];
 
         using RandomNumberGenerator rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
