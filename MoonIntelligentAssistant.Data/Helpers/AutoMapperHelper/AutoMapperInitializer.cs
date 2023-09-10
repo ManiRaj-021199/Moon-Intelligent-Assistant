@@ -21,6 +21,7 @@ internal static class AutoMapperInitializer
                                        {
                                            // User Entity
                                            cfg.CreateMap<UserRegisterDto, NonAuthUser>();
+                                           cfg.CreateMap<NonAuthUser, AuthUser>();
                                        });
     }
     #endregion

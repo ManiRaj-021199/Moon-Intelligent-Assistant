@@ -32,5 +32,12 @@ public class AuthenticationController : ControllerBase
     {
         return await facadeAuthentication.ValidateAuthCode(dtoValidateAuthCode);
     }
+
+    [HttpPost]
+    [Route("[action]")]
+    public async Task<BaseApiResponseDto> RegisterUser(UserRegisterPasswordDto dtoUserRegisterPassword)
+    {
+        return await facadeAuthentication.RegisterUser(dtoUserRegisterPassword);
+    }
     #endregion
 }

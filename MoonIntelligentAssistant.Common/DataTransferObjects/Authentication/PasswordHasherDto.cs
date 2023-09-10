@@ -3,7 +3,7 @@
 public class PasswordHasherDto
 {
     #region Properties
-    public string? PasswordHash { get; set; }
-    public byte[]? PasswordSalt { get; set; }
+    public string PasswordHash { get; set; } = string.Empty;
+    public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
     #endregion
 }
