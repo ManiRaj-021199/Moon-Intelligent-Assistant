@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace MoonIntelligentAssistant.Common;
+﻿namespace MoonIntelligentAssistant.Common;
 
 public class BaseApiResponseDto
 {

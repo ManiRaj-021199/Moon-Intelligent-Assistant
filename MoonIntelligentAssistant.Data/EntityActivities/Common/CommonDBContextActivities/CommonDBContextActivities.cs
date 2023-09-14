@@ -1,20 +1,20 @@
-﻿namespace MoonIntelligentAssistant.Logic;
+﻿namespace MoonIntelligentAssistant.Data;
 
-internal class CommonDBContextActivities
+public class CommonDBContextActivities : ICommonDBContextActivities
 {
     #region Fields
     private readonly MoonIaContext dbContext;
     #endregion
 
     #region Constructors
-    internal CommonDBContextActivities(MoonIaContext dbContext)
+    public CommonDBContextActivities(MoonIaContext dbContext)
     {
         this.dbContext = dbContext;
     }
     #endregion
 
-    #region Internals
-    internal async Task PersistAsync()
+    #region Publics
+    public async Task PersistAsync()
     {
         await dbContext.SaveChangesAsync();
     }

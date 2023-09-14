@@ -7,8 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\MoonIntelligentAssistant.Common\MoonIntelligentAssistant.Common.csproj" />
-    <ProjectReference Include="..\MoonIntelligentAssistant.Data\MoonIntelligentAssistant.Data.csproj" />
   </ItemGroup>
 
 </Project>

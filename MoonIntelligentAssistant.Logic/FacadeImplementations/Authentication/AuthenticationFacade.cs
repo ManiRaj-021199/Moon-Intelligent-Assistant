@@ -7,9 +7,9 @@ public class AuthenticationFacade : IAuthenticationFacade
     #endregion
 
     #region Constructors
-    public AuthenticationFacade(MoonIaContext dbContext)
+    public AuthenticationFacade(IAuthUsersEntity entityAuthUsers, INonAuthUsersEntity entityNonAuthUsers, ICommonDBContextActivities dbContextActivities)
     {
-        blAuthentication = new AuthenticationBL(dbContext);
+        blAuthentication = new AuthenticationBL(entityAuthUsers, entityNonAuthUsers, dbContextActivities);
     }
     #endregion
 
