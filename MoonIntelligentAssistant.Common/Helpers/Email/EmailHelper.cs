@@ -23,8 +23,8 @@ public static class EmailHelper
         {
             case MailType.UserRegisterAuthCode:
                 string strBodyContent = File.ReadAllText(Path.GetFullPath(dtoMailRequest.MailTemplatePath));
-                strBodyContent = strBodyContent.Replace("UserNameReplace", dictArguments["UserName"]);
-                strBodyContent = strBodyContent.Replace("AuthenticationCodeReplace", dictArguments["AuthenticationCode"]);
+                strBodyContent = strBodyContent.Replace("UserNameReplace", dictArguments[UserRegisterAuthCodeValues.UserName]);
+                strBodyContent = strBodyContent.Replace("AuthenticationCodeReplace", dictArguments[UserRegisterAuthCodeValues.AuthenticationCode]);
 
                 message.Subject = MailSubjectValues.UserRegisterAuthCode;
                 message.Body = strBodyContent;

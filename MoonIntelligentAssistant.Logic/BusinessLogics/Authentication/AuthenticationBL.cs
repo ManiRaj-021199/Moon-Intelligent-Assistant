@@ -136,8 +136,8 @@ internal class AuthenticationBL
                               },
                               new Dictionary<string, string>
                               {
-                                  { "UserName", user.UserName },
-                                  { "AuthenticationCode", strAuthCode }
+                                  { UserRegisterAuthCodeValues.UserName, user.UserName },
+                                  { UserRegisterAuthCodeValues.AuthenticationCode, strAuthCode }
                               });
     }
     #endregion
