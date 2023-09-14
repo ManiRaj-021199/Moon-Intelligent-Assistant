@@ -1,4 +1,4 @@
-﻿using MoonIntelligentAssistant.Containers;
+﻿using MoonIntelligentAssistant.Gateways;
 
 namespace Authentication;
 
@@ -25,7 +25,7 @@ public class Startup
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-        builder.Services.AddMoonDbContext();
+        builder.Services.AddMainDbContext();
         builder.Services.AddAuthenticationFacades();
     }
 
