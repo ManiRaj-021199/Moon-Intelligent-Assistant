@@ -17,12 +17,26 @@ internal static class AutoMapperInitializer
 
     private static MapperConfiguration GetMapperConfiguration()
     {
-        return new MapperConfiguration(cfg =>
+        return new MapperConfiguration(config =>
                                        {
-                                           // User Entity
-                                           cfg.CreateMap<UserRegisterDto, NonAuthUser>();
-                                           cfg.CreateMap<NonAuthUser, AuthUser>();
+                                           // User Schema
+                                           MapSchemaConfig(config);
+
+                                           // User Schema Dto
+                                           MapSchemaDtoConfig(config);
                                        });
+    }
+
+    private static void MapSchemaConfig(IProfileExpression config)
+    {
+        config.CreateMap<AuthUserDto, AuthUser>();
+        config.CreateMap<NonAuthUserDto, NonAuthUser>();
+    }
+
+    private static void MapSchemaDtoConfig(IProfileExpression config)
+    {
+        config.CreateMap<AuthUser, AuthUserDto>();
+        config.CreateMap<NonAuthUser, NonAuthUserDto>();
     }
     #endregion
 }

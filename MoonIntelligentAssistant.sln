@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MoonIntelligentAssistant.Lo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MoonIntelligentAssistant.Common", "MoonIntelligentAssistant.Common\MoonIntelligentAssistant.Common.csproj", "{C16ACB28-8202-4CF7-9A0E-AA7E8346DCB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonIntelligentAssistant.Containers", "MoonIntelligentAssistant.Containers\MoonIntelligentAssistant.Containers.csproj", "{3DF4C40D-163D-4487-AA85-9D9CC2698E1A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MoonIntelligentAssistant.Containers", "MoonIntelligentAssistant.Containers\MoonIntelligentAssistant.Containers.csproj", "{646D0DEE-70D0-4232-B109-FC563C3BE349}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,10 +43,10 @@ Global
 		{C16ACB28-8202-4CF7-9A0E-AA7E8346DCB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C16ACB28-8202-4CF7-9A0E-AA7E8346DCB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C16ACB28-8202-4CF7-9A0E-AA7E8346DCB1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3DF4C40D-163D-4487-AA85-9D9CC2698E1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3DF4C40D-163D-4487-AA85-9D9CC2698E1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3DF4C40D-163D-4487-AA85-9D9CC2698E1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3DF4C40D-163D-4487-AA85-9D9CC2698E1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{646D0DEE-70D0-4232-B109-FC563C3BE349}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{646D0DEE-70D0-4232-B109-FC563C3BE349}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{646D0DEE-70D0-4232-B109-FC563C3BE349}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{646D0DEE-70D0-4232-B109-FC563C3BE349}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

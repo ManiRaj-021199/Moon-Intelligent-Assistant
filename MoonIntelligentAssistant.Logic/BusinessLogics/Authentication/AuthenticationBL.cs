@@ -3,21 +3,17 @@
 internal class AuthenticationBL
 {
     #region Fields
-    private readonly AuthUsersReader readerAuthUsers;
-    private readonly AuthUsersWriter writerAuthUsers;
-    private readonly NonAuthUsersReader readerNonAuthUsers;
-    private readonly NonAuthUsersWriter writerNonAuthUsers;
-    private readonly CommonDBContextActivities dbContextActivities;
+    private readonly IAuthUsersEntity entityAuthUsers;
+    private readonly INonAuthUsersEntity entityNonAuthUsers;
+    private readonly ICommonDBContextActivities dbContextActivities;
     #endregion
 
     #region Constructors
-    internal AuthenticationBL(MoonIaContext dbContext)
+    public AuthenticationBL(IAuthUsersEntity entityAuthUsers, INonAuthUsersEntity entityNonAuthUsers, ICommonDBContextActivities dbContextActivities)
     {
-        readerAuthUsers = new AuthUsersReader(dbContext);
-        writerAuthUsers = new AuthUsersWriter(dbContext);
-        readerNonAuthUsers = new NonAuthUsersReader(dbContext);
-        writerNonAuthUsers = new NonAuthUsersWriter(dbContext);
-        dbContextActivities = new CommonDBContextActivities(dbContext);
+        this.entityAuthUsers = entityAuthUsers;
+        this.entityNonAuthUsers = entityNonAuthUsers;
+        this.dbContextActivities = dbContextActivities;
     }
     #endregion
 
@@ -28,26 +24,26 @@ internal class AuthenticationBL
         {
             if(!dtoUserRegister.UserEmail.IsValidEmail()) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.InvalidEmail);
 
-            AuthUser? authUser = readerAuthUsers.GetByEmail(dtoUserRegister.UserEmail);
+            AuthUserDto? authUser = entityAuthUsers.AuthUsersReader.GetByEmail(dtoUserRegister.UserEmail);
             if(authUser != null) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
 
-            NonAuthUser? nonAuthUser = readerNonAuthUsers.GetByEmail(dtoUserRegister.UserEmail);
+            NonAuthUserDto? nonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoUserRegister.UserEmail);
             string strAuthCode = IsAuthCodeExpired(nonAuthUser) ? RandomUtilitiesHelper.GenerateRandomString() : nonAuthUser!.AuthCode;
 
             if(nonAuthUser == null)
             {
-                nonAuthUser = UserAutoMapperHelper.ToNonAuthUser(dtoUserRegister);
+                nonAuthUser = dtoUserRegister.ToNonAuthUser();
                 nonAuthUser.AuthCode = strAuthCode;
                 nonAuthUser.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
 
-                writerNonAuthUsers.Add(nonAuthUser);
+                entityNonAuthUsers.NonAuthUsersWriter.Add(nonAuthUser);
             }
             else
             {
                 nonAuthUser.AuthCode = strAuthCode;
                 nonAuthUser.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
 
-                writerNonAuthUsers.Update(nonAuthUser);
+                entityNonAuthUsers.NonAuthUsersWriter.Update(nonAuthUser);
             }
 
             await dbContextActivities.PersistAsync();
@@ -66,7 +62,7 @@ internal class AuthenticationBL
     {
         try
         {
-            NonAuthUser? user = readerNonAuthUsers.GetByEmail(dtoValidateAuthCode.UserEmail);
+            NonAuthUserDto? user = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoValidateAuthCode.UserEmail);
 
             if(user == null) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.UserNotRegistered);
             if(user.AuthCode != dtoValidateAuthCode.AuthenticationCode) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.WrongAuthCode);
@@ -83,7 +79,7 @@ internal class AuthenticationBL
 
             user.IsAuthenticated = true;
 
-            writerNonAuthUsers.Update(user);
+            entityNonAuthUsers.NonAuthUsersWriter.Update(user);
             await dbContextActivities.PersistAsync();
 
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.AuthCodeValidateSuccess);
@@ -98,20 +94,20 @@ internal class AuthenticationBL
     {
         try
         {
-            NonAuthUser? nonAuthUser = readerNonAuthUsers.GetByEmail(dtoUserRegisterPassword.UserEmail);
+            NonAuthUserDto? nonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
 
             if(nonAuthUser == null) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.UserNotRegistered);
             if(!nonAuthUser.IsAuthenticated) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.UserNotAuthenticated);
 
             PasswordHasherDto hashedPassword = PasswordHashingHelper.EncryptPassword(dtoUserRegisterPassword.Password);
 
-            AuthUser authUser = UserAutoMapperHelper.ToAuthUser(nonAuthUser);
+            AuthUserDto authUser = nonAuthUser.ToAuthUser();
             authUser.UserId = 0;
             authUser.PasswordHash = hashedPassword.PasswordHash;
             authUser.PasswordSalt = hashedPassword.PasswordSalt;
 
-            writerNonAuthUsers.Remove(nonAuthUser);
-            writerAuthUsers.Add(authUser);
+            entityNonAuthUsers.NonAuthUsersWriter.Remove(nonAuthUser);
+            entityAuthUsers.AuthUsersWriter.Add(authUser);
 
             await dbContextActivities.PersistAsync();
 
@@ -125,12 +121,12 @@ internal class AuthenticationBL
     #endregion
 
     #region Privates
-    private static bool IsAuthCodeExpired(NonAuthUser? user)
+    private static bool IsAuthCodeExpired(NonAuthUserDto? user)
     {
         return user == null || DateTimeUtilitiesHelper.GetCurrentDateTime() - user.RegisterDate > new TimeSpan(0, 5, 0);
     }
 
-    private static void SendUserRegisterAuthCode(NonAuthUser user, string strAuthCode)
+    private static void SendUserRegisterAuthCode(NonAuthUserDto user, string strAuthCode)
     {
         EmailHelper.SendEmail(new MailRequestDto
                               {
@@ -140,8 +136,8 @@ internal class AuthenticationBL
                               },
                               new Dictionary<string, string>
                               {
-                                  { "UserName", user.UserName },
-                                  { "AuthenticationCode", strAuthCode }
+                                  { UserRegisterAuthCodeValues.UserName, user.UserName },
+                                  { UserRegisterAuthCodeValues.AuthenticationCode, strAuthCode }
                               });
     }
     #endregion
