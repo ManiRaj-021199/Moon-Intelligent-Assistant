@@ -22,6 +22,8 @@ internal class AuthenticationBL
     {
         try
         {
+            ResponseBuilderHelper.objApiRequest = dtoUserRegister;
+
             if(!dtoUserRegister.UserEmail.IsValidEmail()) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.InvalidEmail);
 
             AuthUserDto? authUser = entityAuthUsers.AuthUsersReader.GetByEmail(dtoUserRegister.UserEmail);
@@ -62,12 +64,16 @@ internal class AuthenticationBL
     {
         try
         {
-            NonAuthUserDto? user = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoValidateAuthCode.UserEmail);
+            ResponseBuilderHelper.objApiRequest = dtoValidateAuthCode;
 
-            if(user == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
-            if(user.AuthCode != dtoValidateAuthCode.AuthenticationCode) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.WrongAuthCode);
+            AuthUserDto? dtoAuthUser = entityAuthUsers.AuthUsersReader.GetByEmail(dtoValidateAuthCode.UserEmail);
+            if(dtoAuthUser != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
 
-            if(IsAuthCodeExpired(user))
+            NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoValidateAuthCode.UserEmail);
+            if(dtoNonAuthUser == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
+            if(dtoNonAuthUser.AuthCode != dtoValidateAuthCode.AuthenticationCode) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.WrongAuthCode);
+
+            if(IsAuthCodeExpired(dtoNonAuthUser))
             {
                 await SendUserRegisterAuthCode(new UserRegisterDto
                                                {
@@ -77,9 +83,9 @@ internal class AuthenticationBL
                 return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.ExpiredAuthCode);
             }
 
-            user.IsAuthenticated = true;
+            dtoNonAuthUser.IsAuthenticated = true;
 
-            entityNonAuthUsers.NonAuthUsersWriter.Update(user);
+            entityNonAuthUsers.NonAuthUsersWriter.Update(dtoNonAuthUser);
             await dbContextActivities.PersistAsync();
 
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.AuthCodeValidateSuccess);
@@ -94,19 +100,23 @@ internal class AuthenticationBL
     {
         try
         {
-            NonAuthUserDto? nonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
+            ResponseBuilderHelper.objApiRequest = dtoUserRegisterPassword;
 
-            if(nonAuthUser == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
-            if(!nonAuthUser.IsAuthenticated) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotAuthenticated);
+            AuthUserDto? dtoAuthUser = entityAuthUsers.AuthUsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
+            if(dtoAuthUser != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
+
+            NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
+            if(dtoNonAuthUser == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
+            if(!dtoNonAuthUser.IsAuthenticated) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotAuthenticated);
 
             PasswordHasherDto hashedPassword = PasswordHashingHelper.EncryptPassword(dtoUserRegisterPassword.Password);
 
-            AuthUserDto authUser = nonAuthUser.ToAuthUser();
+            AuthUserDto authUser = dtoNonAuthUser.ToAuthUser();
             authUser.UserId = 0;
             authUser.PasswordHash = hashedPassword.PasswordHash;
             authUser.PasswordSalt = hashedPassword.PasswordSalt;
 
-            entityNonAuthUsers.NonAuthUsersWriter.Remove(nonAuthUser);
+            entityNonAuthUsers.NonAuthUsersWriter.Remove(dtoNonAuthUser);
             entityAuthUsers.AuthUsersWriter.Add(authUser);
 
             await dbContextActivities.PersistAsync();

@@ -1,6 +1,6 @@
 ﻿namespace MoonIntelligentAssistant.Data.Entities;
 
-public class Error
+public partial class Error
 {
     #region Properties
     public int LogId { get; set; }

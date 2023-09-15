@@ -1,6 +1,6 @@
 ﻿namespace MoonIntelligentAssistant.Data.Entities;
 
-public class Info
+public partial class Info
 {
     #region Properties
     public int LogId { get; set; }
