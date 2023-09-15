@@ -1,14 +1,14 @@
 ﻿namespace MoonIntelligentAssistant.Data;
 
-public static class UserDtoAutoMapperHelper
+internal static class UserDtoAutoMapperHelper
 {
-    #region Publics
-    public static AuthUserDto ToAuthUserDto(this AuthUser authUser)
+    #region Internals
+    internal static AuthUserDto ToAuthUserDto(this AuthUser authUser)
     {
         return AutoMapperInitializer.Mapper.Map<AuthUserDto>(authUser);
     }
 
-    public static NonAuthUserDto ToNonAuthUserDto(this NonAuthUser nonAuthUser)
+    internal static NonAuthUserDto ToNonAuthUserDto(this NonAuthUser nonAuthUser)
     {
         return AutoMapperInitializer.Mapper.Map<NonAuthUserDto>(nonAuthUser);
     }

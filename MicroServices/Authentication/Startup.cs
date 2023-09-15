@@ -26,7 +26,7 @@ public class Startup
         builder.Services.AddSwaggerGen();
 
         builder.Services.AddMainDbContext();
-        builder.Services.AddAuthenticationFacades();
+        builder.Services.AddAuthenticationContainer();
     }
 
     private static void Configure(WebApplication app)

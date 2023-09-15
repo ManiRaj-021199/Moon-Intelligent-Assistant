@@ -7,9 +7,11 @@ public class AuthenticationFacade : IAuthenticationFacade
     #endregion
 
     #region Constructors
-    public AuthenticationFacade(IAuthUsersEntity entityAuthUsers, INonAuthUsersEntity entityNonAuthUsers, ICommonDBContextActivities dbContextActivities)
+    public AuthenticationFacade(ILogEntity entityLog, IAuthUsersEntity entityAuthUsers, INonAuthUsersEntity entityNonAuthUsers, ICommonDBContextActivities dbContextActivities)
     {
         blAuthentication = new AuthenticationBL(entityAuthUsers, entityNonAuthUsers, dbContextActivities);
+
+        ResponseBuilderHelper.entityLog = entityLog;
     }
     #endregion
 

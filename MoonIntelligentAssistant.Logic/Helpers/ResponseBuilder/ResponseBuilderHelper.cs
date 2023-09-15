@@ -2,34 +2,89 @@
 
 internal static class ResponseBuilderHelper
 {
+    #region Fields
+    internal static object objApiRequest = string.Empty;
+    internal static ILogEntity entityLog = null!;
+    #endregion
+
     #region Internals
-    internal static BaseApiResponseDto BuildSuccessResponse(string strResponseMessage, object result = null!)
+    internal static BaseApiResponseDto BuildSuccessResponse(string strResponseMessage, [CallerFilePath] string strCallerFilePath = "", [CallerMemberName] string strCallerMemberName = "")
     {
-        return new BaseApiResponseDto
-               {
-                   ResponseCode = HttpStatusCode.OK,
-                   ResponseMessage = strResponseMessage,
-                   Result = result
-               };
+        BaseApiResponseDto dtoResponse = new()
+                                         {
+                                             ResponseCode = HttpStatusCode.OK,
+                                             ResponseMessage = strResponseMessage
+                                         };
+        entityLog.AddLogInfo(GetInfoDto(GetApiName(strCallerFilePath, strCallerMemberName), dtoResponse, ApiSeverity.INFORMATION));
+
+        return dtoResponse;
     }
 
-    internal static BaseApiResponseDto BuildErrorResponse(object result = null!)
+    internal static BaseApiResponseDto BuildSuccessResponse(string strResponseMessage, object result, [CallerFilePath] string strCallerFilePath = "", [CallerMemberName] string strCallerMemberName = "")
     {
+        BaseApiResponseDto dtoResponse = new()
+                                         {
+                                             ResponseCode = HttpStatusCode.OK,
+                                             ResponseMessage = strResponseMessage,
+                                             Result = result
+                                         };
+        entityLog.AddLogInfo(GetInfoDto(GetApiName(strCallerFilePath, strCallerMemberName), dtoResponse, ApiSeverity.INFORMATION));
+
+        return dtoResponse;
+    }
+
+    internal static BaseApiResponseDto BuildWarningResponse(string strResponseMessage, [CallerFilePath] string strCallerFilePath = "", [CallerMemberName] string strCallerMemberName = "")
+    {
+        BaseApiResponseDto dtoResponse = new()
+                                         {
+                                             ResponseCode = HttpStatusCode.Accepted,
+                                             ResponseMessage = strResponseMessage
+                                         };
+        entityLog.AddLogInfo(GetInfoDto(GetApiName(strCallerFilePath, strCallerMemberName), dtoResponse, ApiSeverity.WARNING));
+
+        return dtoResponse;
+    }
+
+    internal static BaseApiResponseDto BuildErrorResponse(Exception exception, [CallerFilePath] string strCallerFilePath = "", [CallerMemberName] string strCallerMemberName = "")
+    {
+        entityLog.AddLogError(GetErrorDto(GetApiName(strCallerFilePath, strCallerMemberName), exception));
+
         return new BaseApiResponseDto
                {
                    ResponseCode = HttpStatusCode.BadRequest,
-                   ResponseMessage = CommonErrorMessages.SomethingWentWrong,
-                   Result = result
+                   ResponseMessage = CommonErrorMessages.SomethingWentWrong
+               };
+    }
+    #endregion
+
+    #region Privates
+    private static string GetApiName(string strCallerFilePath, string strCallerMemberName)
+    {
+        string strClassNameWithoutExtension = Path.GetFileNameWithoutExtension(strCallerFilePath);
+
+        return $"{strClassNameWithoutExtension} - {strCallerMemberName}";
+    }
+
+    private static InfoDto GetInfoDto(string strApiName, object objResponse, ApiSeverity severity)
+    {
+        return new InfoDto
+               {
+                   ApiName = strApiName,
+                   ApiRequest = objApiRequest.ToFlatString(),
+                   ApiResponse = objResponse.ToFlatString(),
+                   ApiSeverity = severity.ToString(),
+                   LogDate = DateTimeUtilitiesHelper.GetCurrentDateTime()
                };
     }
 
-    internal static BaseApiResponseDto BuildErrorResponse(string strResponseMessage, object result = null!)
+    private static ErrorDto GetErrorDto(string strApiName, object objException)
     {
-        return new BaseApiResponseDto
+        return new ErrorDto
                {
-                   ResponseCode = HttpStatusCode.BadRequest,
-                   ResponseMessage = strResponseMessage,
-                   Result = result
+                   ApiName = strApiName,
+                   ApiRequest = objApiRequest.ToFlatString(),
+                   Exception = objException.ToFlatString(),
+                   LogDate = DateTimeUtilitiesHelper.GetCurrentDateTime()
                };
     }
     #endregion
