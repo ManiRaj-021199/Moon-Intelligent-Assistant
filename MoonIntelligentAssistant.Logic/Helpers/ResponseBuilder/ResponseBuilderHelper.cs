@@ -3,7 +3,16 @@
 internal static class ResponseBuilderHelper
 {
     #region Internals
-    internal static BaseApiResponseDto BuildSuccessResponse(string strResponseMessage, object result = null!)
+    internal static BaseApiResponseDto BuildSuccessResponse(string strResponseMessage)
+    {
+        return new BaseApiResponseDto
+               {
+                   ResponseCode = HttpStatusCode.OK,
+                   ResponseMessage = strResponseMessage
+               };
+    }
+
+    internal static BaseApiResponseDto BuildSuccessResponse(string strResponseMessage, object result)
     {
         return new BaseApiResponseDto
                {
@@ -13,23 +22,21 @@ internal static class ResponseBuilderHelper
                };
     }
 
-    internal static BaseApiResponseDto BuildErrorResponse(object result = null!)
+    internal static BaseApiResponseDto BuildWarningResponse(string strResponseMessage)
     {
         return new BaseApiResponseDto
                {
-                   ResponseCode = HttpStatusCode.BadRequest,
-                   ResponseMessage = CommonErrorMessages.SomethingWentWrong,
-                   Result = result
+                   ResponseCode = HttpStatusCode.Accepted,
+                   ResponseMessage = strResponseMessage
                };
     }
 
-    internal static BaseApiResponseDto BuildErrorResponse(string strResponseMessage, object result = null!)
+    internal static BaseApiResponseDto BuildErrorResponse(Exception exception)
     {
         return new BaseApiResponseDto
                {
                    ResponseCode = HttpStatusCode.BadRequest,
-                   ResponseMessage = strResponseMessage,
-                   Result = result
+                   ResponseMessage = CommonErrorMessages.SomethingWentWrong
                };
     }
     #endregion

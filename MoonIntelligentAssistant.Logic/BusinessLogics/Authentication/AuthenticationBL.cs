@@ -22,10 +22,10 @@ internal class AuthenticationBL
     {
         try
         {
-            if(!dtoUserRegister.UserEmail.IsValidEmail()) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.InvalidEmail);
+            if(!dtoUserRegister.UserEmail.IsValidEmail()) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.InvalidEmail);
 
             AuthUserDto? authUser = entityAuthUsers.AuthUsersReader.GetByEmail(dtoUserRegister.UserEmail);
-            if(authUser != null) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
+            if(authUser != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
 
             NonAuthUserDto? nonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoUserRegister.UserEmail);
             string strAuthCode = IsAuthCodeExpired(nonAuthUser) ? RandomUtilitiesHelper.GenerateRandomString() : nonAuthUser!.AuthCode;
@@ -52,9 +52,9 @@ internal class AuthenticationBL
 
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.SendAuthenticationCode, dtoUserRegister);
         }
-        catch
+        catch(Exception exception)
         {
-            return ResponseBuilderHelper.BuildErrorResponse();
+            return ResponseBuilderHelper.BuildErrorResponse(exception);
         }
     }
 
@@ -64,8 +64,8 @@ internal class AuthenticationBL
         {
             NonAuthUserDto? user = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoValidateAuthCode.UserEmail);
 
-            if(user == null) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.UserNotRegistered);
-            if(user.AuthCode != dtoValidateAuthCode.AuthenticationCode) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.WrongAuthCode);
+            if(user == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
+            if(user.AuthCode != dtoValidateAuthCode.AuthenticationCode) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.WrongAuthCode);
 
             if(IsAuthCodeExpired(user))
             {
@@ -74,7 +74,7 @@ internal class AuthenticationBL
                                                    UserEmail = dtoValidateAuthCode.UserEmail
                                                });
 
-                return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.ExpiredAuthCode);
+                return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.ExpiredAuthCode);
             }
 
             user.IsAuthenticated = true;
@@ -84,9 +84,9 @@ internal class AuthenticationBL
 
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.AuthCodeValidateSuccess);
         }
-        catch
+        catch(Exception exception)
         {
-            return ResponseBuilderHelper.BuildErrorResponse();
+            return ResponseBuilderHelper.BuildErrorResponse(exception);
         }
     }
 
@@ -96,8 +96,8 @@ internal class AuthenticationBL
         {
             NonAuthUserDto? nonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
 
-            if(nonAuthUser == null) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.UserNotRegistered);
-            if(!nonAuthUser.IsAuthenticated) return ResponseBuilderHelper.BuildErrorResponse(AuthenticationErrorMessages.UserNotAuthenticated);
+            if(nonAuthUser == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
+            if(!nonAuthUser.IsAuthenticated) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotAuthenticated);
 
             PasswordHasherDto hashedPassword = PasswordHashingHelper.EncryptPassword(dtoUserRegisterPassword.Password);
 
@@ -113,9 +113,9 @@ internal class AuthenticationBL
 
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.UserRegisterSuccess);
         }
-        catch
+        catch(Exception exception)
         {
-            return ResponseBuilderHelper.BuildErrorResponse();
+            return ResponseBuilderHelper.BuildErrorResponse(exception);
         }
     }
     #endregion
