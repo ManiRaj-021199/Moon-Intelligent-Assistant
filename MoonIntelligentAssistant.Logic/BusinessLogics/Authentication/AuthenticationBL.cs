@@ -9,7 +9,7 @@ internal class AuthenticationBL
     #endregion
 
     #region Constructors
-    public AuthenticationBL(IAuthUsersEntity entityAuthUsers, INonAuthUsersEntity entityNonAuthUsers, ICommonDBContextActivities dbContextActivities)
+    internal AuthenticationBL(IAuthUsersEntity entityAuthUsers, INonAuthUsersEntity entityNonAuthUsers, ICommonDBContextActivities dbContextActivities)
     {
         this.entityAuthUsers = entityAuthUsers;
         this.entityNonAuthUsers = entityNonAuthUsers;

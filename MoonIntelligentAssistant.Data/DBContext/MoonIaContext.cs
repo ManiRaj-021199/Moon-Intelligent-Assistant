@@ -2,6 +2,9 @@
 
 public partial class MoonIaContext : DbContext
 {
+    // For Unit Test
+    private readonly string strDbConnection = null!;
+
     #region Properties
     public virtual DbSet<AuthUser> AuthUsers { get; set; }
 
@@ -17,6 +20,12 @@ public partial class MoonIaContext : DbContext
     {
     }
 
+    // For Unit Test
+    public MoonIaContext(string strDbConnection)
+    {
+        this.strDbConnection = strDbConnection;
+    }
+
     public MoonIaContext(DbContextOptions<MoonIaContext> options)
         : base(options)
     {
@@ -26,7 +35,8 @@ public partial class MoonIaContext : DbContext
     #region Protecteds
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer(ConnectionStrings.DbConnectionString);
+        // For Unit Test
+        if(!string.IsNullOrEmpty(strDbConnection)) optionsBuilder.UseSqlServer(strDbConnection);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
