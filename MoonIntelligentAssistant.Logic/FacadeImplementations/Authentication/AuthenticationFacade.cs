@@ -26,9 +26,9 @@ public class AuthenticationFacade : IAuthenticationFacade
         return await blAuthentication.ValidateAuthCode(dtoValidateAuthCode);
     }
 
-    public async Task<BaseApiResponseDto> RegisterUser(UserRegisterPasswordDto dtoUserRegisterPassword)
+    public async Task<BaseApiResponseDto> RegisterPassword(UserRegisterPasswordDto dtoUserRegisterPassword)
     {
-        return await blAuthentication.RegisterUser(dtoUserRegisterPassword);
+        return await blAuthentication.RegisterPassword(dtoUserRegisterPassword);
     }
     #endregion
 }

@@ -96,7 +96,7 @@ internal class AuthenticationBL
         }
     }
 
-    internal async Task<BaseApiResponseDto> RegisterUser(UserRegisterPasswordDto dtoUserRegisterPassword)
+    internal async Task<BaseApiResponseDto> RegisterPassword(UserRegisterPasswordDto dtoUserRegisterPassword)
     {
         try
         {
