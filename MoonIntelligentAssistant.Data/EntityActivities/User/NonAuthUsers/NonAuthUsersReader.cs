@@ -10,8 +10,6 @@ public class NonAuthUsersReader : INonAuthUsersReader
     public NonAuthUsersReader(MoonIaContext dbContext)
     {
         this.dbContext = dbContext;
-
-        this.dbContext.TurnOffQueryTrackingBehaviour();
     }
     #endregion
 
@@ -19,6 +17,7 @@ public class NonAuthUsersReader : INonAuthUsersReader
     public NonAuthUserDto? GetByEmail(string strEmail)
     {
         NonAuthUser? nonAuthUser = dbContext.NonAuthUsers.FirstOrDefault(x => x.UserEmail == strEmail);
+        dbContext.ClearChangeTracker();
 
         return nonAuthUser?.ToNonAuthUserDto();
     }

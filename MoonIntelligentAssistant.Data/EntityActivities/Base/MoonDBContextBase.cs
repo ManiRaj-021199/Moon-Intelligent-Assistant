@@ -3,9 +3,9 @@
 internal static class MoonDBContextBase
 {
     #region Internals
-    internal static void TurnOffQueryTrackingBehaviour(this MoonIaContext dbContext)
+    internal static void ClearChangeTracker(this MoonIaContext dbContext)
     {
-        dbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+        dbContext.ChangeTracker.Clear();
     }
     #endregion
 }
