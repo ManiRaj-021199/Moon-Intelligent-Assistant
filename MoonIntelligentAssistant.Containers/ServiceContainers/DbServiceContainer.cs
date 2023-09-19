@@ -3,9 +3,9 @@
 public static class DbServiceContainer
 {
     #region Publics
-    public static void AddMainDbContext(this IServiceCollection services)
+    public static void AddMainDbContext(this IServiceCollection services, string strDbConnection)
     {
-        AddMoonDbContext(services);
+        AddMoonDbContext(services, strDbConnection);
     }
 
     public static void AddAuthenticationContainer(this IServiceCollection services)
@@ -16,10 +16,10 @@ public static class DbServiceContainer
     #endregion
 
     #region Privates
-    private static void AddMoonDbContext(IServiceCollection services)
+    private static void AddMoonDbContext(IServiceCollection services, string strDbConnection)
     {
         // Main Database
-        services.AddDbContext<MoonIaContext>();
+        services.AddDbContext<MoonIaContext>(options => options.UseSqlServer(strDbConnection));
     }
     #endregion
 }

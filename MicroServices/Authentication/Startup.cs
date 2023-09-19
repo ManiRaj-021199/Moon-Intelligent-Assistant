@@ -25,7 +25,7 @@ public class Startup
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-        builder.Services.AddMainDbContext();
+        builder.Services.AddMainDbContext(builder.Configuration.GetConnectionString("MoonDbConnectionString")!);
         builder.Services.AddAuthenticationContainer();
     }
 

@@ -1,0 +1,2 @@
+### Run the following in the Package Manager Console for Migrate the Db
+###### Scaffold-DbContext "Server=<Server Name>;Database=<Db Name>;Trusted_Connection=SSPI;Encrypt=false;TrustServerCertificate=true;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Entities -ContextDir DBContext -force
