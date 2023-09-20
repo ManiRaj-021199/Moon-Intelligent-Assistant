@@ -1,22 +1,22 @@
 ﻿namespace MoonIntelligentAssistant.Data;
 
-public class AuthUsersWriter : IAuthUsersWriter
+public class UsersWriter : IUsersWriter
 {
     #region Fields
     private readonly MoonIaContext dbContext;
     #endregion
 
     #region Constructors
-    public AuthUsersWriter(MoonIaContext dbContext)
+    public UsersWriter(MoonIaContext dbContext)
     {
         this.dbContext = dbContext;
     }
     #endregion
 
     #region Publics
-    public void Add(AuthUserDto dtoAuthUser)
+    public void Add(UserDto dtoUser)
     {
-        dbContext.AuthUsers.Add(dtoAuthUser.ToAuthUser());
+        dbContext.Users.Add(dtoUser.ToUser());
     }
     #endregion
 }

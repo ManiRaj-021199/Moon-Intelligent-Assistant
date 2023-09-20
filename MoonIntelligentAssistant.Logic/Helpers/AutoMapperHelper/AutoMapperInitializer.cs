@@ -24,8 +24,8 @@ internal static class AutoMapperInitializer
 
     private static void MapAuthenticationConfig(IProfileExpression config)
     {
-        config.CreateMap<UserRegisterDto, NonAuthUserDto>();
-        config.CreateMap<NonAuthUserDto, AuthUserDto>();
+        config.CreateMap<UserRegisterDto, UserAuthenticationDto>();
+        config.CreateMap<UserAuthenticationDto, UserDto>();
     }
     #endregion
 }

@@ -11,14 +11,14 @@ public class AuthenticationTest : MoonIATestBase
     [TestInitialize]
     public void TestInitialize()
     {
-        facadeAuthentication = new AuthenticationFacade(entityLog, entityAuthUsers, entityNonAuthUsers, activityDbContext);
+        facadeAuthentication = new AuthenticationFacade(entityLog, entityUsers, entityUserAuthentication, dbContextCommonActivities);
     }
 
     [TestCleanup]
     public void TestCleanup()
     {
-        dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE [User].AuthUsers");
-        dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE [User].NonAuthUsers");
+        dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE [User].Users");
+        dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE [User].UserAuthentication");
 
         dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE [Log].Info");
         dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE [Log].Error");
@@ -36,12 +36,12 @@ public class AuthenticationTest : MoonIATestBase
         Assert.AreEqual(HttpStatusCode.OK, dtoResponse.ResponseCode);
         Assert.AreEqual(AuthenticationSuccessMessages.SendAuthenticationCode, dtoResponse.ResponseMessage);
 
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoNonAuthUser);
-        Assert.AreEqual(AuthenticationTestConst.TEMP_NAME, dtoNonAuthUser.UserName);
-        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoNonAuthUser.UserEmail);
-        Assert.IsFalse(dtoNonAuthUser.IsAuthenticated);
+        Assert.IsNotNull(dtoUserAuthentication);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_NAME, dtoUserAuthentication.UserName);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoUserAuthentication.UserEmail);
+        Assert.IsFalse(dtoUserAuthentication.IsAuthenticated);
     }
 
     [TestMethod]
@@ -84,22 +84,22 @@ public class AuthenticationTest : MoonIATestBase
         // Arrange
         await SendUserRegisterAuthCode();
 
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoNonAuthUser);
-        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoNonAuthUser.UserEmail);
+        Assert.IsNotNull(dtoUserAuthentication);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoUserAuthentication.UserEmail);
 
-        DateTime dtFirstUpdate = dtoNonAuthUser.RegisterDate;
+        DateTime dtFirstUpdate = dtoUserAuthentication.RegisterDate;
 
         // Act
         await SendUserRegisterAuthCode();
 
         // Assert
-        dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoNonAuthUser);
-        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoNonAuthUser.UserEmail);
-        Assert.AreNotEqual(dtFirstUpdate, dtoNonAuthUser.RegisterDate);
+        Assert.IsNotNull(dtoUserAuthentication);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoUserAuthentication.UserEmail);
+        Assert.AreNotEqual(dtFirstUpdate, dtoUserAuthentication.RegisterDate);
     }
 
     [TestMethod]
@@ -108,15 +108,15 @@ public class AuthenticationTest : MoonIATestBase
         // Arrange
         await SendUserRegisterAuthCode();
 
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
-        Assert.IsNotNull(dtoNonAuthUser);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        Assert.IsNotNull(dtoUserAuthentication);
 
-        string strExpiredAuthCode = dtoNonAuthUser.AuthCode;
+        string strExpiredAuthCode = dtoUserAuthentication.AuthCode;
 
-        dtoNonAuthUser.RegisterDate -= new TimeSpan(0, 5, 1);
+        dtoUserAuthentication.RegisterDate -= new TimeSpan(0, 5, 1);
 
-        entityNonAuthUsers.NonAuthUsersWriter.Update(dtoNonAuthUser);
-        await activityDbContext.PersistAsync();
+        entityUserAuthentication.NonAuthUsersWriter.Update(dtoUserAuthentication);
+        await dbContextCommonActivities.PersistAsync();
 
         // Act
         BaseApiResponseDto dtoResponse = await SendUserRegisterAuthCode();
@@ -125,10 +125,10 @@ public class AuthenticationTest : MoonIATestBase
         Assert.AreEqual(HttpStatusCode.OK, dtoResponse.ResponseCode);
         Assert.AreEqual(AuthenticationSuccessMessages.SendAuthenticationCode, dtoResponse.ResponseMessage);
 
-        dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoNonAuthUser);
-        Assert.AreNotEqual(strExpiredAuthCode, dtoNonAuthUser.AuthCode);
+        Assert.IsNotNull(dtoUserAuthentication);
+        Assert.AreNotEqual(strExpiredAuthCode, dtoUserAuthentication.AuthCode);
     }
 
     [TestMethod]
@@ -144,11 +144,11 @@ public class AuthenticationTest : MoonIATestBase
         Assert.AreEqual(HttpStatusCode.OK, dtoResponse.ResponseCode);
         Assert.AreEqual(AuthenticationSuccessMessages.AuthCodeValidateSuccess, dtoResponse.ResponseMessage);
 
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoNonAuthUser);
-        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoNonAuthUser.UserEmail);
-        Assert.IsTrue(dtoNonAuthUser.IsAuthenticated);
+        Assert.IsNotNull(dtoUserAuthentication);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoUserAuthentication.UserEmail);
+        Assert.IsTrue(dtoUserAuthentication.IsAuthenticated);
     }
 
     [TestMethod]
@@ -206,15 +206,15 @@ public class AuthenticationTest : MoonIATestBase
         // Arrange
         await SendUserRegisterAuthCode();
 
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
-        Assert.IsNotNull(dtoNonAuthUser);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        Assert.IsNotNull(dtoUserAuthentication);
 
-        string strExpiredAuthCode = dtoNonAuthUser.AuthCode;
+        string strExpiredAuthCode = dtoUserAuthentication.AuthCode;
 
-        dtoNonAuthUser.RegisterDate -= new TimeSpan(0, 5, 1);
+        dtoUserAuthentication.RegisterDate -= new TimeSpan(0, 5, 1);
 
-        entityNonAuthUsers.NonAuthUsersWriter.Update(dtoNonAuthUser);
-        await activityDbContext.PersistAsync();
+        entityUserAuthentication.NonAuthUsersWriter.Update(dtoUserAuthentication);
+        await dbContextCommonActivities.PersistAsync();
 
         // Act
         BaseApiResponseDto dtoResponse = await ValidateAuthCode();
@@ -223,10 +223,10 @@ public class AuthenticationTest : MoonIATestBase
         Assert.AreEqual(HttpStatusCode.Accepted, dtoResponse.ResponseCode);
         Assert.AreEqual(AuthenticationErrorMessages.ExpiredAuthCode, dtoResponse.ResponseMessage);
 
-        dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoNonAuthUser);
-        Assert.AreNotEqual(strExpiredAuthCode, dtoNonAuthUser.AuthCode);
+        Assert.IsNotNull(dtoUserAuthentication);
+        Assert.AreNotEqual(strExpiredAuthCode, dtoUserAuthentication.AuthCode);
     }
 
     [TestMethod]
@@ -243,14 +243,14 @@ public class AuthenticationTest : MoonIATestBase
         Assert.AreEqual(HttpStatusCode.OK, dtoResponse.ResponseCode);
         Assert.AreEqual(AuthenticationSuccessMessages.UserRegisterSuccess, dtoResponse.ResponseMessage);
 
-        AuthUserDto? dtoAuthUser = entityAuthUsers.AuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        UserDto? dtoUser = entityUsers.AuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoAuthUser);
-        Assert.IsNull(dtoNonAuthUser);
+        Assert.IsNotNull(dtoUser);
+        Assert.IsNull(dtoUserAuthentication);
 
-        Assert.AreEqual(AuthenticationTestConst.TEMP_NAME, dtoAuthUser.UserName);
-        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoAuthUser.UserEmail);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_NAME, dtoUser.UserName);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoUser.UserEmail);
     }
 
     [TestMethod]
@@ -313,12 +313,12 @@ public class AuthenticationTest : MoonIATestBase
 
     private async Task<BaseApiResponseDto> ValidateAuthCode()
     {
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
         ValidateAuthCodeDto dtoValidateAuthCode = new()
                                                   {
                                                       UserEmail = AuthenticationTestConst.TEMP_EMAIL,
-                                                      AuthenticationCode = dtoNonAuthUser?.AuthCode ?? string.Empty
+                                                      AuthenticationCode = dtoUserAuthentication?.AuthCode ?? string.Empty
                                                   };
 
         BaseApiResponseDto dtoResponse = await facadeAuthentication.ValidateAuthCode(dtoValidateAuthCode);

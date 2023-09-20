@@ -1,25 +1,25 @@
 ﻿namespace MoonIntelligentAssistant.Data;
 
-public class AuthUsersReader : IAuthUsersReader
+public class UsersReader : IUsersReader
 {
     #region Fields
     private readonly MoonIaContext dbContext;
     #endregion
 
     #region Constructors
-    public AuthUsersReader(MoonIaContext dbContext)
+    public UsersReader(MoonIaContext dbContext)
     {
         this.dbContext = dbContext;
     }
     #endregion
 
     #region Publics
-    public AuthUserDto? GetByEmail(string strEmail)
+    public UserDto? GetByEmail(string strEmail)
     {
-        AuthUser? authUser = dbContext.AuthUsers.FirstOrDefault(user => user.UserEmail == strEmail);
+        User? user = dbContext.Users.FirstOrDefault(user => user.UserEmail == strEmail);
         dbContext.ClearChangeTracker();
 
-        return authUser?.ToAuthUserDto();
+        return user?.ToUserDto();
     }
     #endregion
 }

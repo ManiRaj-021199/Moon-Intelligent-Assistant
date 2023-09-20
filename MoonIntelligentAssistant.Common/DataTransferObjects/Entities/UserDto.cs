@@ -1,6 +1,6 @@
 ﻿namespace MoonIntelligentAssistant.Common;
 
-public class AuthUserDto
+public class UserDto
 {
     #region Properties
     public int UserId { get; set; }

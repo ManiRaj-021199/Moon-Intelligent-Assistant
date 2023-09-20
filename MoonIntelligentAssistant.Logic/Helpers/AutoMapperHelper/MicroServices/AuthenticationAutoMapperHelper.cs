@@ -3,14 +3,14 @@
 public static class AuthenticationAutoMapperHelper
 {
     #region Publics
-    public static NonAuthUserDto ToNonAuthUser(this UserRegisterDto dtoUserRegister)
+    public static UserAuthenticationDto ToUserAuthenticationDto(this UserRegisterDto dtoUserRegister)
     {
-        return AutoMapperInitializer.Mapper.Map<NonAuthUserDto>(dtoUserRegister);
+        return AutoMapperInitializer.Mapper.Map<UserAuthenticationDto>(dtoUserRegister);
     }
 
-    public static AuthUserDto ToAuthUser(this NonAuthUserDto dtoNonAuthUser)
+    public static UserDto ToUserDto(this UserAuthenticationDto dtoUserAuthentication)
     {
-        return AutoMapperInitializer.Mapper.Map<AuthUserDto>(dtoNonAuthUser);
+        return AutoMapperInitializer.Mapper.Map<UserDto>(dtoUserAuthentication);
     }
     #endregion
 }

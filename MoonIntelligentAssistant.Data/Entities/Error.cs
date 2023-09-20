@@ -1,12 +1,17 @@
-﻿namespace MoonIntelligentAssistant.Data.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace MoonIntelligentAssistant.Data.Entities;
 
 public partial class Error
 {
-    #region Properties
     public int LogId { get; set; }
+
     public string ApiName { get; set; } = null!;
+
     public string ApiRequest { get; set; } = null!;
+
     public string Exception { get; set; } = null!;
+
     public DateTime LogDate { get; set; }
-    #endregion
 }

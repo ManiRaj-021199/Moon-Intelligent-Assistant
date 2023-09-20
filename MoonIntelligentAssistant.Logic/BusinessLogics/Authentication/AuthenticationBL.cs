@@ -3,17 +3,17 @@
 internal class AuthenticationBL
 {
     #region Fields
-    private readonly IAuthUsersEntity entityAuthUsers;
-    private readonly INonAuthUsersEntity entityNonAuthUsers;
-    private readonly ICommonDBContextActivities dbContextActivities;
+    private readonly IUsersEntity entityUsers;
+    private readonly IUserAuthenticationEntity entityUserAuthentication;
+    private readonly ICommonDBContextActivities dbContextCommonActivities;
     #endregion
 
     #region Constructors
-    internal AuthenticationBL(IAuthUsersEntity entityAuthUsers, INonAuthUsersEntity entityNonAuthUsers, ICommonDBContextActivities dbContextActivities)
+    internal AuthenticationBL(IUsersEntity entityUsers, IUserAuthenticationEntity entityUserAuthentication, ICommonDBContextActivities dbContextCommonActivities)
     {
-        this.entityAuthUsers = entityAuthUsers;
-        this.entityNonAuthUsers = entityNonAuthUsers;
-        this.dbContextActivities = dbContextActivities;
+        this.entityUsers = entityUsers;
+        this.entityUserAuthentication = entityUserAuthentication;
+        this.dbContextCommonActivities = dbContextCommonActivities;
     }
     #endregion
 
@@ -26,31 +26,31 @@ internal class AuthenticationBL
 
             if(!dtoUserRegister.UserEmail.IsValidEmail()) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.InvalidEmail);
 
-            AuthUserDto? authUser = entityAuthUsers.AuthUsersReader.GetByEmail(dtoUserRegister.UserEmail);
-            if(authUser != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
+            UserDto? dtoUser = entityUsers.AuthUsersReader.GetByEmail(dtoUserRegister.UserEmail);
+            if(dtoUser != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
 
-            NonAuthUserDto? nonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoUserRegister.UserEmail);
-            string strAuthCode = IsAuthCodeExpired(nonAuthUser) ? RandomUtilitiesHelper.GenerateRandomString() : nonAuthUser!.AuthCode;
+            UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(dtoUserRegister.UserEmail);
+            string strAuthCode = IsAuthCodeExpired(dtoUserAuthentication) ? RandomUtilitiesHelper.GenerateRandomString() : dtoUserAuthentication!.AuthCode;
 
-            if(nonAuthUser == null)
+            if(dtoUserAuthentication == null)
             {
-                nonAuthUser = dtoUserRegister.ToNonAuthUser();
-                nonAuthUser.AuthCode = strAuthCode;
-                nonAuthUser.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
+                dtoUserAuthentication = dtoUserRegister.ToUserAuthenticationDto();
+                dtoUserAuthentication.AuthCode = strAuthCode;
+                dtoUserAuthentication.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
 
-                entityNonAuthUsers.NonAuthUsersWriter.Add(nonAuthUser);
+                entityUserAuthentication.NonAuthUsersWriter.Add(dtoUserAuthentication);
             }
             else
             {
-                nonAuthUser.AuthCode = strAuthCode;
-                nonAuthUser.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
+                dtoUserAuthentication.AuthCode = strAuthCode;
+                dtoUserAuthentication.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
 
-                entityNonAuthUsers.NonAuthUsersWriter.Update(nonAuthUser);
+                entityUserAuthentication.NonAuthUsersWriter.Update(dtoUserAuthentication);
             }
 
-            await dbContextActivities.PersistAsync();
+            await dbContextCommonActivities.PersistAsync();
 
-            SendUserRegisterAuthCode(nonAuthUser, strAuthCode);
+            SendUserRegisterAuthCode(dtoUserAuthentication, strAuthCode);
 
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.SendAuthenticationCode, dtoUserRegister);
         }
@@ -66,14 +66,14 @@ internal class AuthenticationBL
         {
             ResponseBuilderHelper.objApiRequest = dtoValidateAuthCode;
 
-            AuthUserDto? dtoAuthUser = entityAuthUsers.AuthUsersReader.GetByEmail(dtoValidateAuthCode.UserEmail);
-            if(dtoAuthUser != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
+            UserDto? dtoUser = entityUsers.AuthUsersReader.GetByEmail(dtoValidateAuthCode.UserEmail);
+            if(dtoUser != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
 
-            NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoValidateAuthCode.UserEmail);
-            if(dtoNonAuthUser == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
-            if(dtoNonAuthUser.AuthCode != dtoValidateAuthCode.AuthenticationCode) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.WrongAuthCode);
+            UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(dtoValidateAuthCode.UserEmail);
+            if(dtoUserAuthentication == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
+            if(dtoUserAuthentication.AuthCode != dtoValidateAuthCode.AuthenticationCode) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.WrongAuthCode);
 
-            if(IsAuthCodeExpired(dtoNonAuthUser))
+            if(IsAuthCodeExpired(dtoUserAuthentication))
             {
                 await SendUserRegisterAuthCode(new UserRegisterDto
                                                {
@@ -83,10 +83,10 @@ internal class AuthenticationBL
                 return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.ExpiredAuthCode);
             }
 
-            dtoNonAuthUser.IsAuthenticated = true;
+            dtoUserAuthentication.IsAuthenticated = true;
 
-            entityNonAuthUsers.NonAuthUsersWriter.Update(dtoNonAuthUser);
-            await dbContextActivities.PersistAsync();
+            entityUserAuthentication.NonAuthUsersWriter.Update(dtoUserAuthentication);
+            await dbContextCommonActivities.PersistAsync();
 
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.AuthCodeValidateSuccess);
         }
@@ -102,24 +102,24 @@ internal class AuthenticationBL
         {
             ResponseBuilderHelper.objApiRequest = dtoUserRegisterPassword;
 
-            AuthUserDto? dtoAuthUser = entityAuthUsers.AuthUsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
-            if(dtoAuthUser != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
+            UserDto? dtoUser = entityUsers.AuthUsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
+            if(dtoUser != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
 
-            NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
-            if(dtoNonAuthUser == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
-            if(!dtoNonAuthUser.IsAuthenticated) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotAuthenticated);
+            UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
+            if(dtoUserAuthentication == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
+            if(!dtoUserAuthentication.IsAuthenticated) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotAuthenticated);
 
             PasswordHasherDto hashedPassword = PasswordHashingHelper.EncryptPassword(dtoUserRegisterPassword.Password);
 
-            AuthUserDto authUser = dtoNonAuthUser.ToAuthUser();
-            authUser.UserId = 0;
-            authUser.PasswordHash = hashedPassword.PasswordHash;
-            authUser.PasswordSalt = hashedPassword.PasswordSalt;
+            dtoUser = dtoUserAuthentication.ToUserDto();
+            dtoUser.UserId = 0;
+            dtoUser.PasswordHash = hashedPassword.PasswordHash;
+            dtoUser.PasswordSalt = hashedPassword.PasswordSalt;
 
-            entityNonAuthUsers.NonAuthUsersWriter.Remove(dtoNonAuthUser);
-            entityAuthUsers.AuthUsersWriter.Add(authUser);
+            entityUserAuthentication.NonAuthUsersWriter.Remove(dtoUserAuthentication);
+            entityUsers.AuthUsersWriter.Add(dtoUser);
 
-            await dbContextActivities.PersistAsync();
+            await dbContextCommonActivities.PersistAsync();
 
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.UserRegisterSuccess);
         }
@@ -131,22 +131,22 @@ internal class AuthenticationBL
     #endregion
 
     #region Privates
-    private static bool IsAuthCodeExpired(NonAuthUserDto? user)
+    private static bool IsAuthCodeExpired(UserAuthenticationDto? dtoUserAuthentication)
     {
-        return user == null || DateTimeUtilitiesHelper.GetCurrentDateTime() - user.RegisterDate > new TimeSpan(0, 5, 0);
+        return dtoUserAuthentication == null || DateTimeUtilitiesHelper.GetCurrentDateTime() - dtoUserAuthentication.RegisterDate > new TimeSpan(0, 5, 0);
     }
 
-    private static void SendUserRegisterAuthCode(NonAuthUserDto user, string strAuthCode)
+    private static void SendUserRegisterAuthCode(UserAuthenticationDto dtoUserAuthentication, string strAuthCode)
     {
         EmailHelper.SendEmail(new MailRequestDto
                               {
-                                  ToMailAddress = user.UserEmail,
+                                  ToMailAddress = dtoUserAuthentication.UserEmail,
                                   MailType = MailType.UserRegisterAuthCode,
                                   MailTemplatePath = MailTemplatePathValues.UserRegisterAuthCode
                               },
                               new Dictionary<string, string>
                               {
-                                  { UserRegisterAuthCodeValues.UserName, user.UserName },
+                                  { UserRegisterAuthCodeValues.UserName, dtoUserAuthentication.UserName },
                                   { UserRegisterAuthCodeValues.AuthenticationCode, strAuthCode }
                               });
     }
