@@ -3,14 +3,14 @@
 internal static class UserDtoAutoMapperHelper
 {
     #region Internals
-    internal static AuthUserDto ToAuthUserDto(this AuthUser authUser)
+    internal static UserDto ToUserDto(this User user)
     {
-        return AutoMapperInitializer.Mapper.Map<AuthUserDto>(authUser);
+        return AutoMapperInitializer.Mapper.Map<UserDto>(user);
     }
 
-    internal static NonAuthUserDto ToNonAuthUserDto(this NonAuthUser nonAuthUser)
+    internal static UserAuthenticationDto ToUserAuthenticationDto(this UserAuthentication userAuthentication)
     {
-        return AutoMapperInitializer.Mapper.Map<NonAuthUserDto>(nonAuthUser);
+        return AutoMapperInitializer.Mapper.Map<UserAuthenticationDto>(userAuthentication);
     }
     #endregion
 }

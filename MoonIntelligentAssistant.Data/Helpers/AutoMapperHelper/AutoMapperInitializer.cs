@@ -29,8 +29,8 @@ internal static class AutoMapperInitializer
 
     private static void MapSchemaConfig(IProfileExpression config)
     {
-        config.CreateMap<AuthUserDto, AuthUser>();
-        config.CreateMap<NonAuthUserDto, NonAuthUser>();
+        config.CreateMap<UserDto, User>();
+        config.CreateMap<UserAuthenticationDto, UserAuthentication>();
 
         config.CreateMap<InfoDto, Info>();
         config.CreateMap<ErrorDto, Error>();
@@ -38,8 +38,8 @@ internal static class AutoMapperInitializer
 
     private static void MapSchemaDtoConfig(IProfileExpression config)
     {
-        config.CreateMap<AuthUser, AuthUserDto>();
-        config.CreateMap<NonAuthUser, NonAuthUserDto>();
+        config.CreateMap<User, UserDto>();
+        config.CreateMap<UserAuthentication, UserAuthenticationDto>();
     }
     #endregion
 }

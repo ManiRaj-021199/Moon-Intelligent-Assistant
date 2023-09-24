@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MoonIntelligentAssistant.Data.Entities;
 
-public partial class NonAuthUser
+public partial class UserAuthentication
 {
     public int UserId { get; set; }
 

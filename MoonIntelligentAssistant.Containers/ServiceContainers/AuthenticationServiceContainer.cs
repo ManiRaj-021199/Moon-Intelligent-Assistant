@@ -15,8 +15,8 @@ internal static class AuthenticationServiceContainer
         services.AddScoped<ILogEntity, LogEntity>();
 
         // Entities
-        services.AddScoped<IAuthUsersEntity, AuthUsersEntity>();
-        services.AddScoped<INonAuthUsersEntity, NonAuthUsersEntity>();
+        services.AddScoped<IUsersEntity, UsersEntity>();
+        services.AddScoped<IUserAuthenticationEntity, UserAuthenticationEntity>();
     }
     #endregion
 }

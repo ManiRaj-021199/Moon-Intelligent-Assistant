@@ -33,9 +33,9 @@ internal static class PasswordHashingHelper
 
     internal static bool VerifyHashedPassword(string strPassword, PasswordHasherDto hasherDto)
     {
-        byte[] hashToCompare = Rfc2898DeriveBytes.Pbkdf2(strPassword, hasherDto.PasswordSalt!, Iterations, HashAlgorithm, KeySize);
+        byte[] hashToCompare = Rfc2898DeriveBytes.Pbkdf2(strPassword, hasherDto.PasswordSalt, Iterations, HashAlgorithm, KeySize);
 
-        return hashToCompare.SequenceEqual(Convert.FromHexString(hasherDto.PasswordHash!));
+        return hashToCompare.SequenceEqual(Convert.FromHexString(hasherDto.PasswordHash));
     }
     #endregion
 }

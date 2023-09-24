@@ -11,14 +11,14 @@ public class AuthenticationTest : MoonIATestBase
     [TestInitialize]
     public void TestInitialize()
     {
-        facadeAuthentication = new AuthenticationFacade(entityLog, entityAuthUsers, entityNonAuthUsers, activityDbContext);
+        facadeAuthentication = new AuthenticationFacade(entityLog, entityUsers, entityUserAuthentication, dbContextCommonActivities);
     }
 
     [TestCleanup]
     public void TestCleanup()
     {
-        dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE [User].AuthUsers");
-        dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE [User].NonAuthUsers");
+        dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE [User].Users");
+        dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE [User].UserAuthentication");
 
         dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE [Log].Info");
         dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE [Log].Error");
@@ -36,12 +36,12 @@ public class AuthenticationTest : MoonIATestBase
         Assert.AreEqual(HttpStatusCode.OK, dtoResponse.ResponseCode);
         Assert.AreEqual(AuthenticationSuccessMessages.SendAuthenticationCode, dtoResponse.ResponseMessage);
 
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoNonAuthUser);
-        Assert.AreEqual(AuthenticationTestConst.TEMP_NAME, dtoNonAuthUser.UserName);
-        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoNonAuthUser.UserEmail);
-        Assert.IsFalse(dtoNonAuthUser.IsAuthenticated);
+        Assert.IsNotNull(dtoUserAuthentication);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_NAME, dtoUserAuthentication.UserName);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoUserAuthentication.UserEmail);
+        Assert.IsFalse(dtoUserAuthentication.IsAuthenticated);
     }
 
     [TestMethod]
@@ -63,43 +63,27 @@ public class AuthenticationTest : MoonIATestBase
     }
 
     [TestMethod]
-    public async Task Test_SendUserRegisterAuthCode_UserAlreadyRegistered()
-    {
-        // Arrange
-        await SendUserRegisterAuthCode();
-        await ValidateAuthCode();
-        await RegisterPassword();
-
-        // Act
-        BaseApiResponseDto dtoResponse = await SendUserRegisterAuthCode();
-
-        // Assert
-        Assert.AreEqual(HttpStatusCode.Accepted, dtoResponse.ResponseCode);
-        Assert.AreEqual(AuthenticationErrorMessages.UserAlreadyRegistered, dtoResponse.ResponseMessage);
-    }
-
-    [TestMethod]
     public async Task Test_SendUserRegisterAuthCode_UserIsAlreadyInNonAuth_UpdateUserAuthCode()
     {
         // Arrange
         await SendUserRegisterAuthCode();
 
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoNonAuthUser);
-        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoNonAuthUser.UserEmail);
+        Assert.IsNotNull(dtoUserAuthentication);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoUserAuthentication.UserEmail);
 
-        DateTime dtFirstUpdate = dtoNonAuthUser.RegisterDate;
+        DateTime dtFirstUpdate = dtoUserAuthentication.RegisterDate;
 
         // Act
         await SendUserRegisterAuthCode();
 
         // Assert
-        dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoNonAuthUser);
-        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoNonAuthUser.UserEmail);
-        Assert.AreNotEqual(dtFirstUpdate, dtoNonAuthUser.RegisterDate);
+        Assert.IsNotNull(dtoUserAuthentication);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoUserAuthentication.UserEmail);
+        Assert.AreNotEqual(dtFirstUpdate, dtoUserAuthentication.RegisterDate);
     }
 
     [TestMethod]
@@ -108,15 +92,15 @@ public class AuthenticationTest : MoonIATestBase
         // Arrange
         await SendUserRegisterAuthCode();
 
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
-        Assert.IsNotNull(dtoNonAuthUser);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        Assert.IsNotNull(dtoUserAuthentication);
 
-        string strExpiredAuthCode = dtoNonAuthUser.AuthCode;
+        string strExpiredAuthCode = dtoUserAuthentication.AuthCode;
 
-        dtoNonAuthUser.RegisterDate -= new TimeSpan(0, 5, 1);
+        dtoUserAuthentication.RegisterDate -= new TimeSpan(0, 5, 1);
 
-        entityNonAuthUsers.NonAuthUsersWriter.Update(dtoNonAuthUser);
-        await activityDbContext.PersistAsync();
+        entityUserAuthentication.UserAuthenticationWriter.Update(dtoUserAuthentication);
+        await dbContextCommonActivities.PersistAsync();
 
         // Act
         BaseApiResponseDto dtoResponse = await SendUserRegisterAuthCode();
@@ -125,10 +109,10 @@ public class AuthenticationTest : MoonIATestBase
         Assert.AreEqual(HttpStatusCode.OK, dtoResponse.ResponseCode);
         Assert.AreEqual(AuthenticationSuccessMessages.SendAuthenticationCode, dtoResponse.ResponseMessage);
 
-        dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoNonAuthUser);
-        Assert.AreNotEqual(strExpiredAuthCode, dtoNonAuthUser.AuthCode);
+        Assert.IsNotNull(dtoUserAuthentication);
+        Assert.AreNotEqual(strExpiredAuthCode, dtoUserAuthentication.AuthCode);
     }
 
     [TestMethod]
@@ -144,27 +128,11 @@ public class AuthenticationTest : MoonIATestBase
         Assert.AreEqual(HttpStatusCode.OK, dtoResponse.ResponseCode);
         Assert.AreEqual(AuthenticationSuccessMessages.AuthCodeValidateSuccess, dtoResponse.ResponseMessage);
 
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoNonAuthUser);
-        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoNonAuthUser.UserEmail);
-        Assert.IsTrue(dtoNonAuthUser.IsAuthenticated);
-    }
-
-    [TestMethod]
-    public async Task Test_ValidateAuthCode_UserAlreadyRegistered()
-    {
-        // Arrange
-        await SendUserRegisterAuthCode();
-        await ValidateAuthCode();
-        await RegisterPassword();
-
-        // Act
-        BaseApiResponseDto dtoResponse = await ValidateAuthCode();
-
-        // Assert
-        Assert.AreEqual(HttpStatusCode.Accepted, dtoResponse.ResponseCode);
-        Assert.AreEqual(AuthenticationErrorMessages.UserAlreadyRegistered, dtoResponse.ResponseMessage);
+        Assert.IsNotNull(dtoUserAuthentication);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoUserAuthentication.UserEmail);
+        Assert.IsTrue(dtoUserAuthentication.IsAuthenticated);
     }
 
     [TestMethod]
@@ -206,15 +174,15 @@ public class AuthenticationTest : MoonIATestBase
         // Arrange
         await SendUserRegisterAuthCode();
 
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
-        Assert.IsNotNull(dtoNonAuthUser);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        Assert.IsNotNull(dtoUserAuthentication);
 
-        string strExpiredAuthCode = dtoNonAuthUser.AuthCode;
+        string strExpiredAuthCode = dtoUserAuthentication.AuthCode;
 
-        dtoNonAuthUser.RegisterDate -= new TimeSpan(0, 5, 1);
+        dtoUserAuthentication.RegisterDate -= new TimeSpan(0, 5, 1);
 
-        entityNonAuthUsers.NonAuthUsersWriter.Update(dtoNonAuthUser);
-        await activityDbContext.PersistAsync();
+        entityUserAuthentication.UserAuthenticationWriter.Update(dtoUserAuthentication);
+        await dbContextCommonActivities.PersistAsync();
 
         // Act
         BaseApiResponseDto dtoResponse = await ValidateAuthCode();
@@ -223,10 +191,10 @@ public class AuthenticationTest : MoonIATestBase
         Assert.AreEqual(HttpStatusCode.Accepted, dtoResponse.ResponseCode);
         Assert.AreEqual(AuthenticationErrorMessages.ExpiredAuthCode, dtoResponse.ResponseMessage);
 
-        dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoNonAuthUser);
-        Assert.AreNotEqual(strExpiredAuthCode, dtoNonAuthUser.AuthCode);
+        Assert.IsNotNull(dtoUserAuthentication);
+        Assert.AreNotEqual(strExpiredAuthCode, dtoUserAuthentication.AuthCode);
     }
 
     [TestMethod]
@@ -243,30 +211,46 @@ public class AuthenticationTest : MoonIATestBase
         Assert.AreEqual(HttpStatusCode.OK, dtoResponse.ResponseCode);
         Assert.AreEqual(AuthenticationSuccessMessages.UserRegisterSuccess, dtoResponse.ResponseMessage);
 
-        AuthUserDto? dtoAuthUser = entityAuthUsers.AuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        UserDto? dtoUser = entityUsers.UsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
-        Assert.IsNotNull(dtoAuthUser);
-        Assert.IsNull(dtoNonAuthUser);
+        Assert.IsNotNull(dtoUser);
+        Assert.IsNull(dtoUserAuthentication);
 
-        Assert.AreEqual(AuthenticationTestConst.TEMP_NAME, dtoAuthUser.UserName);
-        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoAuthUser.UserEmail);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_NAME, dtoUser.UserName);
+        Assert.AreEqual(AuthenticationTestConst.TEMP_EMAIL, dtoUser.UserEmail);
     }
 
     [TestMethod]
-    public async Task Test_RegisterPassword_UserAlreadyRegistered()
+    public async Task Test_RegisterPassword_PasswordUpdate_Success()
     {
         // Arrange
         await SendUserRegisterAuthCode();
         await ValidateAuthCode();
         await RegisterPassword();
+        await SendUserRegisterAuthCode();
+        await ValidateAuthCode();
+
+        UserDto? dtoUser = entityUsers.UsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
         // Act
-        BaseApiResponseDto dtoResponse = await RegisterPassword();
+        UserRegisterPasswordDto dtoRegisterPassword = new()
+                                                      {
+                                                          UserEmail = AuthenticationTestConst.TEMP_EMAIL,
+                                                          Password = "Updated Password"
+                                                      };
+
+        BaseApiResponseDto dtoResponse = await facadeAuthentication.RegisterPassword(dtoRegisterPassword);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.Accepted, dtoResponse.ResponseCode);
-        Assert.AreEqual(AuthenticationErrorMessages.UserAlreadyRegistered, dtoResponse.ResponseMessage);
+        Assert.AreEqual(HttpStatusCode.OK, dtoResponse.ResponseCode);
+        Assert.AreEqual(AuthenticationSuccessMessages.PasswordUpdateSuccess, dtoResponse.ResponseMessage);
+
+        UserDto? dtoUserUpdated = entityUsers.UsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+
+        Assert.IsNotNull(dtoUser);
+        Assert.IsNotNull(dtoUserUpdated);
+        Assert.AreNotEqual(dtoUser.PasswordHash, dtoUserUpdated.PasswordHash);
     }
 
     [TestMethod]
@@ -295,6 +279,101 @@ public class AuthenticationTest : MoonIATestBase
         Assert.AreEqual(HttpStatusCode.Accepted, dtoResponse.ResponseCode);
         Assert.AreEqual(AuthenticationErrorMessages.UserNotAuthenticated, dtoResponse.ResponseMessage);
     }
+
+    [TestMethod]
+    public async Task Test_ValidateUserLogin_Success()
+    {
+        // Arrange
+        await SendUserRegisterAuthCode();
+        await ValidateAuthCode();
+        await RegisterPassword();
+
+        // Act
+        UserRegisterPasswordDto dtoUserPassword = GetTempUserRegisterPasswordDto();
+        BaseApiResponseDto dtoResponse = await facadeAuthentication.ValidateUserLogin(dtoUserPassword);
+
+        // Assert
+        Assert.IsNotNull(dtoResponse);
+        Assert.AreEqual(HttpStatusCode.OK, dtoResponse.ResponseCode);
+        Assert.AreEqual(AuthenticationSuccessMessages.UserLoginSuccess, dtoResponse.ResponseMessage);
+    }
+
+    [TestMethod]
+    public async Task Test_ValidateUserLogin_UserNotRegistered()
+    {
+        // Arrange
+
+        // Act
+        BaseApiResponseDto dtoResponse = await facadeAuthentication.ValidateUserLogin(GetTempUserRegisterPasswordDto());
+
+        // Assert
+        Assert.IsNotNull(dtoResponse);
+        Assert.AreEqual(HttpStatusCode.Accepted, dtoResponse.ResponseCode);
+        Assert.AreEqual(AuthenticationErrorMessages.UserNotRegistered, dtoResponse.ResponseMessage);
+    }
+
+    [TestMethod]
+    public async Task Test_ValidateUserLogin_UserNotAuthenticated()
+    {
+        // Arrange
+        await SendUserRegisterAuthCode();
+        await ValidateAuthCode();
+        await RegisterPassword();
+
+        await SendUserRegisterAuthCode();
+
+        // Act
+        BaseApiResponseDto dtoResponse = await facadeAuthentication.ValidateUserLogin(GetTempUserRegisterPasswordDto());
+
+        // Assert
+        Assert.IsNotNull(dtoResponse);
+        Assert.AreEqual(HttpStatusCode.Accepted, dtoResponse.ResponseCode);
+        Assert.AreEqual(AuthenticationErrorMessages.UserNotAuthenticated, dtoResponse.ResponseMessage);
+    }
+
+    [TestMethod]
+    public async Task Test_ValidateUserLogin_FailedAttemptsExceeds()
+    {
+        // Arrange
+        await SendUserRegisterAuthCode();
+        await ValidateAuthCode();
+        await RegisterPassword();
+
+        // Act
+        await facadeAuthentication.ValidateUserLogin(GetWrongUserRegisterPasswordDto());
+        await facadeAuthentication.ValidateUserLogin(GetWrongUserRegisterPasswordDto());
+        await facadeAuthentication.ValidateUserLogin(GetWrongUserRegisterPasswordDto());
+
+        BaseApiResponseDto dtoResponse = await facadeAuthentication.ValidateUserLogin(GetWrongUserRegisterPasswordDto());
+
+        // Assert
+        Assert.IsNotNull(dtoResponse);
+        Assert.AreEqual(HttpStatusCode.Accepted, dtoResponse.ResponseCode);
+        Assert.AreEqual(AuthenticationErrorMessages.FailedAttemptsExceeds, dtoResponse.ResponseMessage);
+    }
+
+    [TestMethod]
+    public async Task Test_ValidateUserLogin_WrongPassword()
+    {
+        // Arrange
+        await SendUserRegisterAuthCode();
+        await ValidateAuthCode();
+        await RegisterPassword();
+
+        // Act
+        BaseApiResponseDto dtoResponse = await facadeAuthentication.ValidateUserLogin(GetWrongUserRegisterPasswordDto());
+
+        // Assert
+        Assert.IsNotNull(dtoResponse);
+        Assert.AreEqual(HttpStatusCode.Accepted, dtoResponse.ResponseCode);
+        Assert.AreEqual(string.Format(AuthenticationErrorMessages.WrongPassword, AuthenticationConstantValues.MAXIMUM_FAILED_LOGIN_ATTEMPTS_ALLOWED - 1), dtoResponse.ResponseMessage);
+
+        dtoResponse = await facadeAuthentication.ValidateUserLogin(GetWrongUserRegisterPasswordDto());
+        Assert.AreEqual(string.Format(AuthenticationErrorMessages.WrongPassword, AuthenticationConstantValues.MAXIMUM_FAILED_LOGIN_ATTEMPTS_ALLOWED - 2), dtoResponse.ResponseMessage);
+
+        dtoResponse = await facadeAuthentication.ValidateUserLogin(GetWrongUserRegisterPasswordDto());
+        Assert.AreEqual(string.Format(AuthenticationErrorMessages.WrongPassword, AuthenticationConstantValues.MAXIMUM_FAILED_LOGIN_ATTEMPTS_ALLOWED - 3), dtoResponse.ResponseMessage);
+    }
     #endregion
 
     #region Privates
@@ -313,12 +392,12 @@ public class AuthenticationTest : MoonIATestBase
 
     private async Task<BaseApiResponseDto> ValidateAuthCode()
     {
-        NonAuthUserDto? dtoNonAuthUser = entityNonAuthUsers.NonAuthUsersReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
+        UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(AuthenticationTestConst.TEMP_EMAIL);
 
         ValidateAuthCodeDto dtoValidateAuthCode = new()
                                                   {
                                                       UserEmail = AuthenticationTestConst.TEMP_EMAIL,
-                                                      AuthenticationCode = dtoNonAuthUser?.AuthCode ?? string.Empty
+                                                      AuthenticationCode = dtoUserAuthentication?.AuthCode ?? string.Empty
                                                   };
 
         BaseApiResponseDto dtoResponse = await facadeAuthentication.ValidateAuthCode(dtoValidateAuthCode);
@@ -328,15 +407,27 @@ public class AuthenticationTest : MoonIATestBase
 
     private async Task<BaseApiResponseDto> RegisterPassword()
     {
-        UserRegisterPasswordDto dtoRegisterPassword = new()
-                                                      {
-                                                          UserEmail = AuthenticationTestConst.TEMP_EMAIL,
-                                                          Password = AuthenticationTestConst.TEMP_NAME + AuthenticationTestConst.TEMP_EMAIL
-                                                      };
-
-        BaseApiResponseDto dtoResponse = await facadeAuthentication.RegisterPassword(dtoRegisterPassword);
+        BaseApiResponseDto dtoResponse = await facadeAuthentication.RegisterPassword(GetTempUserRegisterPasswordDto());
 
         return dtoResponse;
+    }
+
+    private static UserRegisterPasswordDto GetTempUserRegisterPasswordDto()
+    {
+        return new UserRegisterPasswordDto
+               {
+                   UserEmail = AuthenticationTestConst.TEMP_EMAIL,
+                   Password = AuthenticationTestConst.TEMP_NAME + AuthenticationTestConst.TEMP_EMAIL
+               };
+    }
+
+    private static UserRegisterPasswordDto GetWrongUserRegisterPasswordDto()
+    {
+        return new UserRegisterPasswordDto
+               {
+                   UserEmail = AuthenticationTestConst.TEMP_EMAIL,
+                   Password = "wrong password"
+               };
     }
     #endregion
 }

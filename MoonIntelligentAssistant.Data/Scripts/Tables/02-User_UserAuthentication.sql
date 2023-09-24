@@ -1,7 +1,7 @@
 IF NOT EXISTS (SELECT * FROM sys.objects
-WHERE object_id = OBJECT_ID(N'[User].[NonAuthUsers]') AND type in (N'U'))
+WHERE object_id = OBJECT_ID(N'[User].[UserAuthentication]') AND type in (N'U'))
 BEGIN
-CREATE TABLE [User].[NonAuthUsers](
+CREATE TABLE [User].[UserAuthentication](
 	[UserId] [int] PRIMARY KEY IDENTITY(1,1) NOT NULL,
 	[UserName] [nvarchar](50) NOT NULL,
 	[UserEmail] [nvarchar](75) NOT NULL,

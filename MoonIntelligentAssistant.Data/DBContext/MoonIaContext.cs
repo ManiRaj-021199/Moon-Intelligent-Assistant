@@ -2,17 +2,19 @@
 
 public partial class MoonIaContext : DbContext
 {
+    #region Fields
     // For Unit Test
     private readonly string strDbConnection = null!;
+    #endregion
 
     #region Properties
-    public virtual DbSet<AuthUser> AuthUsers { get; set; }
-
     public virtual DbSet<Error> Errors { get; set; }
 
     public virtual DbSet<Info> Infos { get; set; }
 
-    public virtual DbSet<NonAuthUser> NonAuthUsers { get; set; }
+    public virtual DbSet<User> Users { get; set; }
+
+    public virtual DbSet<UserAuthentication> UserAuthentications { get; set; }
     #endregion
 
     #region Constructors
@@ -41,16 +43,6 @@ public partial class MoonIaContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<AuthUser>(entity =>
-                                      {
-                                          entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4CF7A7EDFF");
-
-                                          entity.ToTable("AuthUsers", "User");
-
-                                          entity.Property(e => e.UserEmail).HasMaxLength(75);
-                                          entity.Property(e => e.UserName).HasMaxLength(50);
-                                      });
-
         modelBuilder.Entity<Error>(entity =>
                                    {
                                        entity.HasKey(e => e.LogId).HasName("PK__Error__5E548648605EC969");
@@ -69,16 +61,26 @@ public partial class MoonIaContext : DbContext
                                       entity.Property(e => e.ApiName).HasMaxLength(100);
                                   });
 
-        modelBuilder.Entity<NonAuthUser>(entity =>
-                                         {
-                                             entity.HasKey(e => e.UserId).HasName("PK__NonAuthU__1788CC4CFBC7ECD8");
+        modelBuilder.Entity<User>(entity =>
+                                  {
+                                      entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4CF7A7EDFF");
 
-                                             entity.ToTable("NonAuthUsers", "User");
+                                      entity.ToTable("Users", "User");
 
-                                             entity.Property(e => e.AuthCode).HasMaxLength(50);
-                                             entity.Property(e => e.UserEmail).HasMaxLength(75);
-                                             entity.Property(e => e.UserName).HasMaxLength(50);
-                                         });
+                                      entity.Property(e => e.UserEmail).HasMaxLength(75);
+                                      entity.Property(e => e.UserName).HasMaxLength(50);
+                                  });
+
+        modelBuilder.Entity<UserAuthentication>(entity =>
+                                                {
+                                                    entity.HasKey(e => e.UserId).HasName("PK__NonAuthU__1788CC4CFBC7ECD8");
+
+                                                    entity.ToTable("UserAuthentication", "User");
+
+                                                    entity.Property(e => e.AuthCode).HasMaxLength(50);
+                                                    entity.Property(e => e.UserEmail).HasMaxLength(75);
+                                                    entity.Property(e => e.UserName).HasMaxLength(50);
+                                                });
 
         OnModelCreatingPartial(modelBuilder);
     }

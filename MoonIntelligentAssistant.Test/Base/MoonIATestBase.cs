@@ -4,10 +4,10 @@
 public class MoonIATestBase
 {
     #region Fields
-    protected readonly IAuthUsersEntity entityAuthUsers;
-    protected readonly INonAuthUsersEntity entityNonAuthUsers;
+    protected readonly IUsersEntity entityUsers;
+    protected readonly IUserAuthenticationEntity entityUserAuthentication;
 
-    protected readonly ICommonDBContextActivities activityDbContext;
+    protected readonly ICommonDBContextActivities dbContextCommonActivities;
 
     protected readonly ILogEntity entityLog;
     protected readonly MoonIaContext dbContext;
@@ -18,10 +18,10 @@ public class MoonIATestBase
     {
         dbContext = new MoonIaContext(BaseTestConst.DB_CONNECTION_STRING);
 
-        entityAuthUsers = new AuthUsersEntity(dbContext);
-        entityNonAuthUsers = new NonAuthUsersEntity(dbContext);
+        entityUsers = new UsersEntity(dbContext);
+        entityUserAuthentication = new UserAuthenticationEntity(dbContext);
 
-        activityDbContext = new CommonDBContextActivities(dbContext);
+        dbContextCommonActivities = new CommonDBContextActivities(dbContext);
 
         entityLog = new LogEntity(dbContext);
     }
