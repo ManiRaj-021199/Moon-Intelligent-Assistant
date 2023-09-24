@@ -26,10 +26,7 @@ internal class AuthenticationBL
 
             if(!dtoUserRegister.UserEmail.IsValidEmail()) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.InvalidEmail);
 
-            UserDto? dtoUser = entityUsers.AuthUsersReader.GetByEmail(dtoUserRegister.UserEmail);
-            if(dtoUser != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
-
-            UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(dtoUserRegister.UserEmail);
+            UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(dtoUserRegister.UserEmail);
             string strAuthCode = IsAuthCodeExpired(dtoUserAuthentication) ? RandomUtilitiesHelper.GenerateRandomString() : dtoUserAuthentication!.AuthCode;
 
             if(dtoUserAuthentication == null)
@@ -38,14 +35,14 @@ internal class AuthenticationBL
                 dtoUserAuthentication.AuthCode = strAuthCode;
                 dtoUserAuthentication.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
 
-                entityUserAuthentication.NonAuthUsersWriter.Add(dtoUserAuthentication);
+                entityUserAuthentication.UserAuthenticationWriter.Add(dtoUserAuthentication);
             }
             else
             {
                 dtoUserAuthentication.AuthCode = strAuthCode;
                 dtoUserAuthentication.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
 
-                entityUserAuthentication.NonAuthUsersWriter.Update(dtoUserAuthentication);
+                entityUserAuthentication.UserAuthenticationWriter.Update(dtoUserAuthentication);
             }
 
             await dbContextCommonActivities.PersistAsync();
@@ -65,11 +62,8 @@ internal class AuthenticationBL
         try
         {
             ResponseBuilderHelper.objApiRequest = dtoValidateAuthCode;
-
-            UserDto? dtoUser = entityUsers.AuthUsersReader.GetByEmail(dtoValidateAuthCode.UserEmail);
-            if(dtoUser != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
-
-            UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(dtoValidateAuthCode.UserEmail);
+            
+            UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(dtoValidateAuthCode.UserEmail);
             if(dtoUserAuthentication == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
             if(dtoUserAuthentication.AuthCode != dtoValidateAuthCode.AuthenticationCode) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.WrongAuthCode);
 
@@ -85,7 +79,7 @@ internal class AuthenticationBL
 
             dtoUserAuthentication.IsAuthenticated = true;
 
-            entityUserAuthentication.NonAuthUsersWriter.Update(dtoUserAuthentication);
+            entityUserAuthentication.UserAuthenticationWriter.Update(dtoUserAuthentication);
             await dbContextCommonActivities.PersistAsync();
 
             return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.AuthCodeValidateSuccess);
@@ -102,26 +96,80 @@ internal class AuthenticationBL
         {
             ResponseBuilderHelper.objApiRequest = dtoUserRegisterPassword;
 
-            UserDto? dtoUser = entityUsers.AuthUsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
-            if(dtoUser != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserAlreadyRegistered);
-
-            UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.NonAuthUsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
+            UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
             if(dtoUserAuthentication == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
             if(!dtoUserAuthentication.IsAuthenticated) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotAuthenticated);
 
             PasswordHasherDto hashedPassword = PasswordHashingHelper.EncryptPassword(dtoUserRegisterPassword.Password);
 
-            dtoUser = dtoUserAuthentication.ToUserDto();
+            UserDto dtoUser = dtoUserAuthentication.ToUserDto();
             dtoUser.UserId = 0;
             dtoUser.PasswordHash = hashedPassword.PasswordHash;
             dtoUser.PasswordSalt = hashedPassword.PasswordSalt;
+            dtoUser.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
 
-            entityUserAuthentication.NonAuthUsersWriter.Remove(dtoUserAuthentication);
-            entityUsers.AuthUsersWriter.Add(dtoUser);
+            entityUserAuthentication.UserAuthenticationWriter.Remove(dtoUserAuthentication);
+            await dbContextCommonActivities.PersistAsync();
+
+            UserDto? dtoUserNeedToUpdate = entityUsers.UsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
+
+            if(dtoUserNeedToUpdate == null) entityUsers.UsersWriter.Add(dtoUser);
+            else
+            {
+                dtoUserNeedToUpdate.PasswordHash = hashedPassword.PasswordHash;
+                dtoUserNeedToUpdate.PasswordSalt = hashedPassword.PasswordSalt;
+                dtoUserNeedToUpdate.RegisterDate = DateTimeUtilitiesHelper.GetCurrentDateTime();
+
+                entityUsers.UsersWriter.Update(dtoUserNeedToUpdate);
+            }
 
             await dbContextCommonActivities.PersistAsync();
 
-            return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.UserRegisterSuccess);
+            return ResponseBuilderHelper.BuildSuccessResponse(dtoUserNeedToUpdate == null ? AuthenticationSuccessMessages.UserRegisterSuccess : AuthenticationSuccessMessages.PasswordUpdateSuccess);
+        }
+        catch(Exception exception)
+        {
+            return ResponseBuilderHelper.BuildErrorResponse(exception);
+        }
+    }
+
+    internal async Task<BaseApiResponseDto> ValidateUserLogin(UserRegisterPasswordDto dtoUserRegisterPassword)
+    {
+        try
+        {
+            ResponseBuilderHelper.objApiRequest = dtoUserRegisterPassword;
+            
+            UserDto? dtoUser = entityUsers.UsersReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
+            if(dtoUser == null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotRegistered);
+
+            UserAuthenticationDto? dtoUserAuthentication = entityUserAuthentication.UserAuthenticationReader.GetByEmail(dtoUserRegisterPassword.UserEmail);
+            if(dtoUserAuthentication != null) return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.UserNotAuthenticated);
+
+            if(dtoUser.FailedLoginCount >= AuthenticationConstantValues.MAXIMUM_FAILED_LOGIN_ATTEMPTS_ALLOWED && DateTimeUtilitiesHelper.GetCurrentDateTime() - dtoUser.RegisterDate < new TimeSpan(1, 0, 0))
+            {
+                return ResponseBuilderHelper.BuildWarningResponse(AuthenticationErrorMessages.FailedAttemptsExceeds);
+            }
+
+            bool bIsLoginSuccess = PasswordHashingHelper.VerifyHashedPassword(dtoUserRegisterPassword.Password, new PasswordHasherDto
+                                                                                                                {
+                                                                                                                    PasswordHash = dtoUser.PasswordHash,
+                                                                                                                    PasswordSalt = dtoUser.PasswordSalt
+                                                                                                                });
+
+            if(!bIsLoginSuccess)
+            {
+                dtoUser.FailedLoginCount += 1;
+                entityUsers.UsersWriter.Update(dtoUser);
+                await dbContextCommonActivities.PersistAsync();
+
+                return ResponseBuilderHelper.BuildWarningResponse(string.Format(AuthenticationErrorMessages.WrongPassword, AuthenticationConstantValues.MAXIMUM_FAILED_LOGIN_ATTEMPTS_ALLOWED - dtoUser.FailedLoginCount));
+            }
+            
+            dtoUser.FailedLoginCount = 0;
+            entityUsers.UsersWriter.Update(dtoUser);
+            await dbContextCommonActivities.PersistAsync();
+
+            return ResponseBuilderHelper.BuildSuccessResponse(AuthenticationSuccessMessages.UserLoginSuccess);
         }
         catch(Exception exception)
         {

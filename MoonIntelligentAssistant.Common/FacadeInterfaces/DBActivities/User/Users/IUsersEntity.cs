@@ -3,7 +3,7 @@
 public interface IUsersEntity
 {
     #region Properties
-    public IUsersReader AuthUsersReader { get; }
-    public IUsersWriter AuthUsersWriter { get; }
+    public IUsersReader UsersReader { get; }
+    public IUsersWriter UsersWriter { get; }
     #endregion
 }

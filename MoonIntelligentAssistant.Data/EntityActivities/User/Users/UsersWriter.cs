@@ -18,5 +18,10 @@ public class UsersWriter : IUsersWriter
     {
         dbContext.Users.Add(dtoUser.ToUser());
     }
+
+    public void Update(UserDto dtoUser)
+    {
+        dbContext.Users.Update(dtoUser.ToUser());
+    }
     #endregion
 }

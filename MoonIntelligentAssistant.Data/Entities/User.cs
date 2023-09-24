@@ -15,5 +15,7 @@ public partial class User
 
     public byte[] PasswordSalt { get; set; } = null!;
 
+    public byte FailedLoginCount { get; set; }
+
     public DateTime RegisterDate { get; set; }
 }

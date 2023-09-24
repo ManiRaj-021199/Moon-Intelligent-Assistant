@@ -7,6 +7,7 @@ CREATE TABLE [User].[Users](
 	[UserEmail] [nvarchar](75) NOT NULL,
 	[PasswordHash] [nvarchar](max) NOT NULL,
 	[PasswordSalt] [varbinary](max) NOT NULL,
+	[FailedLoginCount] [tinyint] NOT NULL,
 	[RegisterDate] [datetime2](7) NOT NULL
 )
 END

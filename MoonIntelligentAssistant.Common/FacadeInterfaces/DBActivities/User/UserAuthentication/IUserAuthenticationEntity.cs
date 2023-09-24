@@ -2,6 +2,6 @@
 
 public interface IUserAuthenticationEntity
 {
-    IUserAuthenticationReader NonAuthUsersReader { get; }
-    IUserAuthenticationWriter NonAuthUsersWriter { get; }
+    IUserAuthenticationReader UserAuthenticationReader { get; }
+    IUserAuthenticationWriter UserAuthenticationWriter { get; }
 }

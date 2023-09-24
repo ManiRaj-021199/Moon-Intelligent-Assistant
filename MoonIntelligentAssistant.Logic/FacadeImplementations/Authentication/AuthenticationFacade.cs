@@ -30,5 +30,10 @@ public class AuthenticationFacade : IAuthenticationFacade
     {
         return await blAuthentication.RegisterPassword(dtoUserRegisterPassword);
     }
+
+    public async Task<BaseApiResponseDto> ValidateUserLogin(UserRegisterPasswordDto dtoUserRegisterPassword)
+    {
+        return await blAuthentication.ValidateUserLogin(dtoUserRegisterPassword);
+    }
     #endregion
 }

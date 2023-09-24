@@ -3,15 +3,15 @@
 public class UsersEntity : IUsersEntity
 {
     #region Properties
-    public IUsersReader AuthUsersReader { get; }
-    public IUsersWriter AuthUsersWriter { get; }
+    public IUsersReader UsersReader { get; }
+    public IUsersWriter UsersWriter { get; }
     #endregion
 
     #region Constructors
     public UsersEntity(MoonIaContext dbContext)
     {
-        this.AuthUsersReader = new UsersReader(dbContext);
-        this.AuthUsersWriter = new UsersWriter(dbContext);
+        this.UsersReader = new UsersReader(dbContext);
+        this.UsersWriter = new UsersWriter(dbContext);
     }
     #endregion
 }
