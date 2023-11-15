@@ -13,6 +13,12 @@ public static class DbServiceContainer
         services.AddAuthenticationFacades();
         services.AddAuthenticationEntities();
     }
+
+    public static void AddResourcesContainer(this IServiceCollection services)
+    {
+        services.AddResourcesFacades();
+        services.AddResourcesEntities();
+    }
     #endregion
 
     #region Privates

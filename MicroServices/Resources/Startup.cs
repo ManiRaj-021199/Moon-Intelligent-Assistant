@@ -1,6 +1,6 @@
 ﻿using MoonIntelligentAssistant.Containers;
 
-namespace Authentication;
+namespace Resources;
 
 public static class Startup
 {
@@ -26,7 +26,7 @@ public static class Startup
         builder.Services.AddSwaggerGen();
 
         builder.Services.AddMainDbContext(builder.Configuration.GetConnectionString("MoonDbConnectionString")!);
-        builder.Services.AddAuthenticationContainer();
+        builder.Services.AddResourcesContainer();
     }
 
     private static void Configure(WebApplication app)
