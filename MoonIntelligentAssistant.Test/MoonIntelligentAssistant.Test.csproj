@@ -17,8 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MoonIntelligentAssistant.Data\MoonIntelligentAssistant.Data.csproj" />
-    <ProjectReference Include="..\MoonIntelligentAssistant.Logic\MoonIntelligentAssistant.Logic.csproj" />
+    <ProjectReference Include="..\MoonIntelligentAssistant.Containers\MoonIntelligentAssistant.Containers.csproj" />
   </ItemGroup>
 
 </Project>

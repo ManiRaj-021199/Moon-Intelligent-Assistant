@@ -4,7 +4,7 @@ using MoonIntelligentAssistant.Common;
 namespace Authentication;
 
 [ApiController]
-[Route("/[controller]")]
+[Route("/[controller]/[action]")]
 public class AuthenticationController : ControllerBase
 {
     #region Fields
@@ -20,28 +20,24 @@ public class AuthenticationController : ControllerBase
 
     #region Publics
     [HttpPost]
-    [Route("[action]")]
     public async Task<BaseApiResponseDto> SendUserRegisterAuthCode(UserRegisterDto dtoUserRegister)
     {
         return await facadeAuthentication.SendUserRegisterAuthCode(dtoUserRegister);
     }
 
     [HttpPost]
-    [Route("[action]")]
     public async Task<BaseApiResponseDto> ValidateAuthCode(ValidateAuthCodeDto dtoValidateAuthCode)
     {
         return await facadeAuthentication.ValidateAuthCode(dtoValidateAuthCode);
     }
 
     [HttpPost]
-    [Route("[action]")]
     public async Task<BaseApiResponseDto> RegisterPassword(UserRegisterPasswordDto dtoUserRegisterPassword)
     {
         return await facadeAuthentication.RegisterPassword(dtoUserRegisterPassword);
     }
 
     [HttpPost]
-    [Route("[action]")]
     public async Task<BaseApiResponseDto> ValidateUserLogin(UserRegisterPasswordDto dtoUserRegisterPassword)
     {
         return await facadeAuthentication.ValidateUserLogin(dtoUserRegisterPassword);
